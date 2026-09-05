@@ -16,9 +16,10 @@ const PROFILE_API = `${BASE_URL}/api/profiles/`;
 // --- TRANSLATIONS DICTIONARY ---
 const translations = {
   en: {
-    serviceConnect: "ServiceConnect",
-    needjob: "I Want to Work",
-    needservice: "I Need Service",
+    serviceConnect: "🤝 SAHAYA",
+    tagline: "Help, near you.",
+    needjob: "💪 I Want to Work",
+    needservice: "🙋 I Need Help",
     login: "Login",
     register: "Register",
     username: "Username",
@@ -37,7 +38,7 @@ const translations = {
     reviews: "Reviews",
     myDocuments: "My Documents",
     accept: "Accept",
-    scanning: "Scanning for jobs...",
+    scanning: "🔍 Searching for SAHAYA requests near you...",
     uploadDoc: "Upload Document",
     logout: "Logout",
     browseByTrade: "Browse by Trade / Niche",
@@ -68,9 +69,10 @@ const translations = {
 
   },
   hi: {
-    serviceConnect: "सर्विस कनेक्ट",
-    needjob: "मुझे काम चाहिए",
-    needservice: "मुझे सेवा चाहिए",
+    serviceConnect: "🤝 सहाय",
+    tagline: "मदद, आपके पास।",
+    needjob: "💪 मुझे काम चाहिए",
+    needservice: "🙋 मुझे सहाय चाहिए",
     login: "लॉग इन",
     register: "पंजीकरण",
     username: "उपयोगकर्ता नाम",
@@ -89,7 +91,7 @@ const translations = {
     reviews: "रिव्युज",
     myDocuments: "मेरे दस्तावेज",
     accept: "स्वीकार",
-    scanning: "खोज जारी है...",
+    scanning: "🔍 आस-पास की SAHAYA रिक्वेस्ट खोजी जा रही है...",
     uploadDoc: "अपलोड करें",
     logout: "लॉग आउट",
     browseByTrade: "व्यापार के अनुसार ब्राउज़ करें",
@@ -119,9 +121,10 @@ const translations = {
     waiting: "कर्मचारी की प्रतीक्षा..."
   },
   mr: {
-    serviceConnect: "सर्व्हिस कनेक्ट",
-    needjob: "मला काम हवे आहे",
-    needservice: "मला सेवा हवी आहे",
+    serviceConnect: "🤝 सहाय",
+    tagline: "मदत, आपल्याजवळ.",
+    needjob: "💪 मला काम हवे आहे",
+    needservice: "🙋 मला सहाय हवी आहे",
     login: "लॉग इन",
     register: "नोंदणी",
     username: "वापरकर्ता",
@@ -140,7 +143,7 @@ const translations = {
     reviews: "रिव्युज",
     myDocuments: "कागदपत्रे",
     accept: "स्वीकारा",
-    scanning: "शोध सुरू...",
+    scanning: "🔍 जवळपासच्या SAHAYA विनंत्या शोधत आहे...",
     uploadDoc: "अपलोड करा",
     logout: "बाहेर पडा",
     browseByTrade: "व्यवसायानुसार ब्राउझ करा",
@@ -274,9 +277,9 @@ function WorkerProfile({ lang, user, setUser, fetchCurrentUser }) {
       {user?.is_worker && (
         <div className="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800 p-8 rounded-3xl text-white shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
           <div>
-            <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">Digital Payout Wallet</p>
+            <p className="text-indigo-200 text-xs font-bold uppercase tracking-widest">SAHAYA Wallet</p>
             <h3 className="text-4xl font-black mt-2">₹{Number(user?.wallet_balance || 0).toFixed(2)}</h3>
-            <p className="text-indigo-100 text-xs mt-1 italic">Funds from completed jobs are instantly released here.</p>
+            <p className="text-indigo-100 text-xs mt-1 italic">Your earnings from completed SAHAYA jobs land here.</p>
           </div>
 
           <div className="flex flex-col gap-2 w-full md:w-auto">
@@ -756,7 +759,7 @@ export default function App() {
               key: res.data.key_id,
               amount: res.data.amount,
               currency: res.data.currency,
-              name: "ServiceConnect Escrow",
+              name: "SAHAYA Escrow",
               description: `Escrow payment for job: ${payingJob?.title || 'Service'}`,
               order_id: res.data.order_id,
               handler: async function (response) {
@@ -1115,7 +1118,10 @@ export default function App() {
       <div className="min-h-screen bg-gray-50 font-sans">
         <nav className="bg-white border-b p-4 px-8 flex justify-between items-center sticky top-0 z-10">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-black text-indigo-600 tracking-tight">{t.serviceConnect}</h1>
+            <div>
+              <h1 className="text-2xl font-black text-indigo-600 tracking-tight">{t.serviceConnect}</h1>
+              <p className="text-[10px] text-gray-400 font-medium -mt-0.5 tracking-wide">Community Services Platform</p>
+            </div>
             <div className="flex bg-gray-100 rounded-lg p-1">
               {['en', 'hi', 'mr'].map((l) => (
                 <button key={l} onClick={() => setLang(l)} className={`px-3 py-1 text-xs font-bold rounded-md uppercase ${lang === l ? 'bg-white shadow text-indigo-600' : 'text-gray-500'}`}>{l}</button>
@@ -1699,7 +1705,7 @@ export default function App() {
                   <div className="space-y-4">
                     {!activeJob ? (
                       <div className="text-center py-16 bg-gray-50 rounded-3xl border border-gray-100">
-                        <p className="text-gray-400 italic">You have no active jobs right now.</p>
+                        <p className="text-gray-400 italic">No active SAHAYA jobs right now. Check the marketplace!</p>
                       </div>
                     ) : (
                       <div className={`border-2 p-8 rounded-[2rem] shadow-lg ${activeJob.escrow_status === 'pending' ? 'bg-amber-50/50 border-amber-200' : 'bg-green-50 border-2 border-green-200'
@@ -1712,7 +1718,7 @@ export default function App() {
                               <span className="text-3xl">⚠️</span>
                               <div>
                                 <p className="font-bold text-amber-800 text-sm">WAITING FOR CLIENT PAYMENT</p>
-                                <p className="text-amber-700 text-xs mt-0.5">The client has not funded the escrow yet. Do NOT begin work until funds are secured!</p>
+                                <p className="text-amber-700 text-xs mt-0.5">SAHAYA protects you — do NOT begin work until funds are secured!</p>
                               </div>
                             </div>
                             <button onClick={() => handleRefundJob(activeJob.id)} className="bg-red-100 text-red-700 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-200 transition">Cancel Assignment</button>
@@ -1743,7 +1749,7 @@ export default function App() {
                               <span className="text-3xl">🛡️</span>
                               <div>
                                 <p className="font-bold text-green-800 text-sm">ESCROW FUNDS SECURED</p>
-                                <p className="text-green-700 text-xs mt-0.5">₹{activeJob.budget} is held securely in escrow. You are fully protected. Begin working!</p>
+                                <p className="text-green-700 text-xs mt-0.5">₹{activeJob.budget} secured by SAHAYA escrow. You are fully protected — begin working!</p>
                               </div>
                             </div>
                             <div className="flex gap-2">
@@ -1991,8 +1997,8 @@ export default function App() {
                     {/* Existing Trade Profiles */}
                     {workerTradeProfiles.length === 0 ? (
                       <div className="p-10 text-center bg-gray-50 rounded-2xl border-2 border-dashed">
-                        <p className="text-gray-400">You haven't created any trade profiles yet.</p>
-                        <p className="text-xs text-gray-300 mt-1">Create a profile to be visible to clients in specific trade categories.</p>
+                        <p className="text-gray-400">No SAHAYA trade profiles yet.</p>
+                        <p className="text-xs text-gray-300 mt-1">Create a profile to start receiving requests from clients on SAHAYA.</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -2183,8 +2189,8 @@ export default function App() {
         {showPaymentModal && payingJob && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
             <div className="bg-white w-full max-w-md rounded-[2rem] p-8 shadow-2xl">
-              <h3 className="text-xl font-bold mb-2 text-gray-800">Secure Escrow Payment</h3>
-              <p className="text-gray-500 text-sm mb-6">Fund the budget of <span className="font-extrabold text-indigo-600">₹{payingJob.budget}</span> for your job "<span className="font-semibold text-gray-700">{payingJob.title}</span>". Money is held securely by the platform.</p>
+              <h3 className="text-xl font-bold mb-2 text-gray-800">🔐 SAHAYA Secure Escrow</h3>
+              <p className="text-gray-500 text-sm mb-6">Fund the budget of <span className="font-extrabold text-indigo-600">₹{payingJob.budget}</span> for your job "<span className="font-semibold text-gray-700">{payingJob.title}</span>". Money is held securely by SAHAYA until work is approved.</p>
 
               <div className="space-y-4 mb-6">
                 <button
@@ -2380,7 +2386,8 @@ export default function App() {
       <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 text-center">
         {view === 'landing' ? (
           <>
-            <h1 className="text-4xl font-black text-yellow-500 mb-8">{t.serviceConnect}</h1>
+            <h1 className="text-4xl font-black text-yellow-500 mb-1">{t.serviceConnect}</h1>
+            <p className="text-sm text-gray-400 font-medium mb-6 tracking-wide">{t.tagline}</p>
             <div className="flex justify-center gap-2 mb-8">{['en', 'hi', 'mr'].map((l) => (<button key={l} onClick={() => setLang(l)} className={`px-4 py-2 font-bold rounded-lg uppercase ${lang === l ? 'bg-yellow-100 text-black-700' : 'text-gray-400'}`}>{l}</button>))}</div>
             <button onClick={() => { setRole('client'); setView('login'); }} className="w-full py-4 bg-yellow-400 text-black rounded-2xl font-bold mb-4 shadow-xl hover:bg-yellow-300 transition transform hover:scale-105">{t.needservice}</button>
             <button onClick={() => { setRole('worker'); setView('login'); }} className="w-full py-4 bg-gray-800 text-white border-2 border-gray-700 rounded-2xl font-bold shadow-xl hover:bg-gray-700 transition transform hover:scale-105">{t.needjob}</button>
