@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Golden Shield Contour -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,24 L78,33 C78,57 67,73 54,82 C41,73 30,57 30,33 Z" />
+    <!-- Inner Dark Crest Inset -->
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M54,28 L74,36 C74,55 64,69 54,77 C44,69 34,55 34,36 Z" />
+    <!-- Crossed Wrench and Hammer / Trade Emblem in White & Amber -->
+    <!-- Wrench head and handle -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M44,38 L48,42 L62,56 C63,57 63,59 62,60 L60,62 C59,63 57,63 56,62 L42,48 L38,44 C36,44 34,45 33,47 C32,49 33,52 35,53 L38,50 L41,53 L38,56 C34,57 29,54 28,49 C27,44 30,39 35,38 C38,37 41,37 44,38 Z" />
+    <!-- Hammer / Mallet cross -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M64,38 L72,46 L68,50 L66,48 L52,62 C51,63 49,63 48,62 L46,60 C45,59 45,57 46,56 L60,42 L58,40 L62,36 Z" />
+    <!-- Center Trust Star / Sparkle Node -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,44 L56,49 L61,51 L56,53 L54,58 L52,53 L47,51 L52,49 Z" />
+</vector>
