@@ -393,7 +393,7 @@ export default function AdminPortal() {
                   required
                   value={loginForm.username}
                   onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
-                  placeholder="e.g. Skepigno"
+                  placeholder="Enter Username"
                   className="w-full px-3 py-2.5 text-sm bg-white border-2 border-slate-300 rounded-none focus:border-blue-900 focus:outline-none font-mono"
                 />
               </div>
@@ -446,11 +446,10 @@ export default function AdminPortal() {
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans flex flex-col">
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-5 py-3 border shadow-lg text-xs font-bold tracking-wide flex items-center gap-2 ${
-          toast.type === 'success' ? 'bg-green-50 border-green-600 text-green-800' :
-          toast.type === 'error' ? 'bg-red-50 border-red-600 text-red-800' :
-          'bg-blue-50 border-blue-600 text-blue-800'
-        }`}>
+        <div className={`fixed top-4 right-4 z-50 px-5 py-3 border shadow-lg text-xs font-bold tracking-wide flex items-center gap-2 ${toast.type === 'success' ? 'bg-green-50 border-green-600 text-green-800' :
+            toast.type === 'error' ? 'bg-red-50 border-red-600 text-red-800' :
+              'bg-blue-50 border-blue-600 text-blue-800'
+          }`}>
           <span>{toast.type === 'success' ? '✓' : toast.type === 'error' ? '✕' : 'ℹ'}</span>
           <span>{toast.message}</span>
         </div>
@@ -505,11 +504,10 @@ export default function AdminPortal() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-3 text-xs font-bold tracking-wide uppercase border-b-2 transition ${
-                  activeTab === tab.id
+                className={`px-4 py-3 text-xs font-bold tracking-wide uppercase border-b-2 transition ${activeTab === tab.id
                     ? 'border-blue-900 text-blue-900 bg-blue-50/50'
                     : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -538,7 +536,7 @@ export default function AdminPortal() {
 
       {/* 3. MAIN WORKSPACE CONTAINER */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6">
-        
+
         {/* ======================================================== */}
         {/* TAB 1: DASHBOARD & OVERVIEW */}
         {/* ======================================================== */}
@@ -685,11 +683,10 @@ export default function AdminPortal() {
                   <button
                     key={st}
                     onClick={() => setKycFilter(st)}
-                    className={`px-3 py-1 text-xs font-bold uppercase border transition ${
-                      kycFilter === st
+                    className={`px-3 py-1 text-xs font-bold uppercase border transition ${kycFilter === st
                         ? 'bg-blue-900 text-white border-blue-950'
                         : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'
-                    }`}
+                      }`}
                   >
                     {st}
                   </button>
@@ -728,11 +725,10 @@ export default function AdminPortal() {
                           <td className="p-3 border-r border-slate-200 font-semibold">{item.role}</td>
                           <td className="p-3 border-r border-slate-200 font-medium text-slate-800">{item.id_type || 'Identity Card'}</td>
                           <td className="p-3 border-r border-slate-200">
-                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
-                              item.verification_status === 'verified' ? 'bg-green-100 text-green-800 border-green-300' :
-                              item.verification_status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                              'bg-red-100 text-red-800 border-red-300'
-                            }`}>
+                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${item.verification_status === 'verified' ? 'bg-green-100 text-green-800 border-green-300' :
+                                item.verification_status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                  'bg-red-100 text-red-800 border-red-300'
+                              }`}>
                               {item.verification_status}
                             </span>
                           </td>
@@ -758,11 +754,10 @@ export default function AdminPortal() {
                           <td className="p-3 border-r border-slate-200 font-semibold text-indigo-700">Worker Document</td>
                           <td className="p-3 border-r border-slate-200 font-medium text-slate-800">{item.id_type}</td>
                           <td className="p-3 border-r border-slate-200">
-                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
-                              item.verification_status === 'verified' ? 'bg-green-100 text-green-800 border-green-300' :
-                              item.verification_status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                              'bg-red-100 text-red-800 border-red-300'
-                            }`}>
+                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${item.verification_status === 'verified' ? 'bg-green-100 text-green-800 border-green-300' :
+                                item.verification_status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                  'bg-red-100 text-red-800 border-red-300'
+                              }`}>
                               {item.verification_status}
                             </span>
                           </td>
@@ -810,7 +805,7 @@ export default function AdminPortal() {
                   {/* Document Images Viewer */}
                   <div className="mb-6">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Uploaded Document Media:</h4>
-                    
+
                     {selectedDoc.type === 'user_kyc' ? (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 border border-slate-300">
                         {/* ID Front */}
@@ -1047,12 +1042,11 @@ export default function AdminPortal() {
                           )}
                         </td>
                         <td className="p-3 border-r border-slate-200">
-                          <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
-                            u.verification_status === 'verified' ? 'bg-green-100 text-green-800 border-green-300' :
-                            u.verification_status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
-                            u.verification_status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
-                            'bg-slate-100 text-slate-600 border-slate-200'
-                          }`}>
+                          <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${u.verification_status === 'verified' ? 'bg-green-100 text-green-800 border-green-300' :
+                              u.verification_status === 'pending' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                                u.verification_status === 'rejected' ? 'bg-red-100 text-red-800 border-red-300' :
+                                  'bg-slate-100 text-slate-600 border-slate-200'
+                            }`}>
                             {u.verification_status}
                           </span>
                         </td>
@@ -1137,11 +1131,10 @@ export default function AdminPortal() {
                     <div className="flex flex-wrap items-center gap-3">
                       <button
                         onClick={() => handleUpdateUserStatus(selectedUserDetail.user.id, { is_active: !selectedUserDetail.user.is_active })}
-                        className={`px-4 py-2 text-xs font-bold uppercase border ${
-                          selectedUserDetail.user.is_active
+                        className={`px-4 py-2 text-xs font-bold uppercase border ${selectedUserDetail.user.is_active
                             ? 'bg-red-700 hover:bg-red-800 text-white border-red-900'
                             : 'bg-green-700 hover:bg-green-800 text-white border-green-900'
-                        }`}
+                          }`}
                       >
                         {selectedUserDetail.user.is_active ? 'Suspend / Deactivate Account' : 'Reactivate Account'}
                       </button>
@@ -1263,23 +1256,21 @@ export default function AdminPortal() {
                           ₹{job.budget}
                         </td>
                         <td className="p-3 border-r border-slate-200">
-                          <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
-                            job.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
-                            job.status === 'disputed' ? 'bg-red-100 text-red-800 border-red-300' :
-                            job.status === 'worker_completed' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' :
-                            job.status === 'accepted' ? 'bg-blue-100 text-blue-800 border-blue-300' :
-                            'bg-slate-100 text-slate-700 border-slate-300'
-                          }`}>
+                          <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${job.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                              job.status === 'disputed' ? 'bg-red-100 text-red-800 border-red-300' :
+                                job.status === 'worker_completed' ? 'bg-indigo-100 text-indigo-800 border-indigo-300' :
+                                  job.status === 'accepted' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                    'bg-slate-100 text-slate-700 border-slate-300'
+                            }`}>
                             {job.status}
                           </span>
                         </td>
                         <td className="p-3 border-r border-slate-200">
-                          <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${
-                            job.escrow_status === 'held' ? 'text-amber-800 bg-amber-50 border border-amber-200' :
-                            job.escrow_status === 'released' ? 'text-green-800 bg-green-50 border border-green-200' :
-                            job.escrow_status === 'refunded' ? 'text-blue-800 bg-blue-50 border border-blue-200' :
-                            'text-slate-500'
-                          }`}>
+                          <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${job.escrow_status === 'held' ? 'text-amber-800 bg-amber-50 border border-amber-200' :
+                              job.escrow_status === 'released' ? 'text-green-800 bg-green-50 border border-green-200' :
+                                job.escrow_status === 'refunded' ? 'text-blue-800 bg-blue-50 border border-blue-200' :
+                                  'text-slate-500'
+                            }`}>
                             {job.escrow_status}
                           </span>
                         </td>
@@ -1463,11 +1454,10 @@ export default function AdminPortal() {
                         <td className="p-3 text-center">
                           <button
                             onClick={() => handleToggleTradeProfile(p.id, p.is_active)}
-                            className={`px-3 py-1 text-xs font-bold uppercase border ${
-                              p.is_active
+                            className={`px-3 py-1 text-xs font-bold uppercase border ${p.is_active
                                 ? 'bg-red-50 text-red-700 border-red-300 hover:bg-red-100'
                                 : 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100'
-                            }`}
+                              }`}
                           >
                             {p.is_active ? 'Deactivate' : 'Activate'}
                           </button>
