@@ -41,7 +41,7 @@ data class UserEntity(
         isClient = isClient,
         isWorker = isWorker,
         activeRole = runCatching { UserRole.valueOf(activeRole) }.getOrDefault(UserRole.CLIENT),
-        verificationStatus = runCatching { VerificationStatus.valueOf(verificationStatus) }.getOrDefault(VerificationStatus.VERIFIED),
+        verificationStatus = runCatching { VerificationStatus.valueOf(verificationStatus) }.getOrDefault(VerificationStatus.UNSUBMITTED),
         rejectionReason = rejectionReason,
         walletBalance = walletBalance,
         bankName = bankName,

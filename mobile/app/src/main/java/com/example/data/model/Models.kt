@@ -49,14 +49,14 @@ data class User(
     val isClient: Boolean,
     val isWorker: Boolean,
     val activeRole: UserRole = if (isClient) UserRole.CLIENT else UserRole.WORKER,
-    val verificationStatus: VerificationStatus = VerificationStatus.VERIFIED,
+    val verificationStatus: VerificationStatus = VerificationStatus.UNSUBMITTED,
     val rejectionReason: String? = null,
-    val walletBalance: Double = 1250.0,
-    val bankName: String = "State Bank of India",
-    val accountNumber: String = "XXXX-XXXX-4819",
-    val ifscCode: String = "SBIN0001234",
-    val rating: Float = 4.8f,
-    val jobsCompleted: Int = 14
+    val walletBalance: Double = 0.0,
+    val bankName: String = "",
+    val accountNumber: String = "",
+    val ifscCode: String = "",
+    val rating: Float = 5.0f,
+    val jobsCompleted: Int = 0
 )
 
 data class Job(

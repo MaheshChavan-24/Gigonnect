@@ -66,6 +66,7 @@ data class ReviewDto(
 data class PayJobResponse(
     @Json(name = "message") val message: String? = null,
     @Json(name = "razorpay_order_id") val razorpayOrderId: String? = null,
+    @Json(name = "order_id") val orderId: String? = null,
     @Json(name = "amount") val amount: Double? = null,
     @Json(name = "currency") val currency: String? = "INR",
     @Json(name = "key_id") val keyId: String? = null

@@ -15,23 +15,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Handyman
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,56 +49,45 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.UserRole
 import com.example.ui.components.SahaayLogo
-import com.example.ui.theme.SahayaAmber
-import com.example.ui.theme.SahayaAmberContainer
 import com.example.ui.theme.SahayaPrimary
-import com.example.ui.theme.SahayaPrimaryContainer
-import com.example.ui.theme.SahayaSuccess
+import com.example.ui.theme.SahayaSecondary
 
 @Composable
 fun LandingScreen(
-    onLoginClick: () -> Unit,
-    onRegisterClick: () -> Unit,
+    onLoginClick: (String, String) -> Unit,
+    onRegisterClick: (UserRole) -> Unit,
     isHindi: Boolean,
     onToggleLanguage: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    var selectedRole by remember { mutableStateOf(UserRole.CLIENT) }
+
+    var usernameOrEmail by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.White)
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 20.dp),
+            .padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top Header
+        // Top Bar Language Switcher
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.End
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SahaayLogo(size = 40.dp, shapeRadius = 10.dp)
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "SAHAAY",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Black,
-                    color = SahayaPrimary,
-                    letterSpacing = 1.2.sp
-                )
-            }
-
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = Color(0xFFF1F5F9),
                 modifier = Modifier.clickable(onClick = onToggleLanguage)
             ) {
                 Row(
@@ -101,7 +97,7 @@ fun LandingScreen(
                     Icon(
                         imageVector = Icons.Default.Language,
                         contentDescription = "Language",
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = SahayaSecondary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
@@ -109,139 +105,7 @@ fun LandingScreen(
                         text = if (isHindi) "English" else "हिन्दी (HI)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Hero Tagline
-        Text(
-            text = if (isHindi) "कुशल कारीगर एवं घरेलू सेवाएं, सुरक्षित एस्क्रो के साथ" else "Skilled Trades & Home Repairs with Secure Escrow",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center,
-            lineHeight = 28.sp
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = if (isHindi) "नलसाजी, बढ़ईगीरी, बिजली का काम और 15+ श्रेणियां।" else "Plumbing, electrical, carpentry & 15+ verified trades.",
-            fontSize = 13.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Segmented Sub-Tabs: Client / Worker
-        Card(
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(18.dp)) {
-                // Tab Selector
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(14.dp))
-                        .padding(4.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
-                                if (selectedRole == UserRole.CLIENT) MaterialTheme.colorScheme.surface else Color.Transparent,
-                                RoundedCornerShape(10.dp)
-                            )
-                            .clickable { selectedRole = UserRole.CLIENT }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = null,
-                                tint = if (selectedRole == UserRole.CLIENT) SahayaPrimary else Color.Gray,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (isHindi) "ग्राहक (Customer)" else "Customer",
-                                fontSize = 13.sp,
-                                fontWeight = if (selectedRole == UserRole.CLIENT) FontWeight.Bold else FontWeight.Medium,
-                                color = if (selectedRole == UserRole.CLIENT) SahayaPrimary else Color.Gray
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .background(
-                                if (selectedRole == UserRole.WORKER) MaterialTheme.colorScheme.surface else Color.Transparent,
-                                RoundedCornerShape(10.dp)
-                            )
-                            .clickable { selectedRole = UserRole.WORKER }
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Default.Handyman,
-                                contentDescription = null,
-                                tint = if (selectedRole == UserRole.WORKER) SahayaAmber else Color.Gray,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = if (isHindi) "कारीगर (Worker)" else "Service Worker",
-                                fontSize = 13.sp,
-                                fontWeight = if (selectedRole == UserRole.WORKER) FontWeight.Bold else FontWeight.Medium,
-                                color = if (selectedRole == UserRole.WORKER) SahayaAmber else Color.Gray
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Tab Content Preview
-                if (selectedRole == UserRole.CLIENT) {
-                    FeatureRow(
-                        title = if (isHindi) "तत्काल मरम्मत कार्य पोस्ट करें" else "Post Instant & Scheduled Jobs",
-                        desc = if (isHindi) "आपातकालीन या सामान्य काम दर्ज करें, नजदीकी कारीगर तुरंत मिलेंगे।" else "Post home repairs and alert verified nearby workers instantly."
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    FeatureRow(
-                        title = if (isHindi) "100% सुरक्षित एस्क्रो भुगतान" else "100% Escrow Protection",
-                        desc = if (isHindi) "काम पूरा होने और आपकी संतुष्टि के बाद ही भुगतान जारी होता है।" else "Funds held in safe escrow and released only after your approval."
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    FeatureRow(
-                        title = if (isHindi) "सत्यापित कुशल कारीगर" else "Verified Trade Professionals",
-                        desc = if (isHindi) "सरकारी पहचान पत्र सत्यापित और रेटिंग वाले कारीगर खोजें।" else "Browse KYC verified plumbers, electricians, and carpenters."
-                    )
-                } else {
-                    FeatureRow(
-                        title = if (isHindi) "नजदीकी काम स्वीकारें" else "Accept Nearby Trade Jobs",
-                        desc = if (isHindi) "अपने क्षेत्र में लाइव काम देखें और तुरंत स्वीकार करें।" else "View real-time job requests and accept local repair orders."
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    FeatureRow(
-                        title = if (isHindi) "सीधे बैंक खाते में सुरक्षित भुगतान" else "Guaranteed Escrow Payouts",
-                        desc = if (isHindi) "काम समाप्त होते ही सीधे वॉलेट व बैंक में राशि प्राप्त करें।" else "Get paid on time with direct transfers to your bank account."
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    FeatureRow(
-                        title = if (isHindi) "व्यापार प्रोफ़ाइल बनाएं" else "Build Your Trade Reputation",
-                        desc = if (isHindi) "अपने कौशल, अनुभव और ग्राहक रेटिंग का प्रदर्शन करें।" else "Showcase skills, experience, and collect 5-star client reviews."
+                        color = SahayaSecondary
                     )
                 }
             }
@@ -249,91 +113,249 @@ fun LandingScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Escrow guarantee pill
-        Row(
-            modifier = Modifier
-                .background(Color(0xFFF1F5F9), RoundedCornerShape(20.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Shield,
-                contentDescription = "Escrow Guarantee",
-                tint = SahayaSuccess,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
+        // Center App Icon
+        SahaayLogo(size = 72.dp, shapeRadius = 18.dp)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Heading
+        Text(
+            text = if (isHindi) "सहाय में आपका स्वागत है" else "Welcome to Sahaay",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Black,
+            color = SahayaSecondary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Subtitle
+        Text(
+            text = if (isHindi) "विश्वसनीय सेवाएँ खोजें या अपनी सेवाएँ प्रदान करें" else "Find trusted help or offer your services",
+            fontSize = 14.sp,
+            color = Color(0xFF64748B),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Email / Username Input
+        Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = if (isHindi) "100% सुरक्षित एस्क्रो एवं सरकारी पहचान सत्यापन" else "100% Escrow Protected & Govt ID Verified",
-                fontSize = 11.sp,
+                text = if (isHindi) "उपयोगकर्ता नाम / ईमेल पता" else "Email Address / Username",
+                fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF334155)
+                color = SahayaSecondary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            OutlinedTextField(
+                value = usernameOrEmail,
+                onValueChange = { usernameOrEmail = it },
+                placeholder = { Text(if (isHindi) "you@email.com या उपयोगकर्ता नाम" else "you@email.com or username", color = Color(0xFF94A3B8), fontSize = 14.sp) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        tint = Color(0xFF94A3B8),
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                    focusedBorderColor = SahayaPrimary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("landing_username_input")
+            )
+        }
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        // Password Input
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = if (isHindi) "पासवर्ड" else "Password",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = SahayaSecondary
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                placeholder = { Text(if (isHindi) "अपना पासवर्ड दर्ज करें" else "Enter your password", color = Color(0xFF94A3B8), fontSize = 14.sp) },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = Color(0xFF94A3B8),
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = "Toggle password visibility",
+                            tint = Color(0xFF94A3B8),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = Color(0xFFE2E8F0),
+                    focusedBorderColor = SahayaPrimary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = if (isHindi) "पासवर्ड भूल गए?" else "Forgot password?",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = SahayaPrimary,
+                    modifier = Modifier.clickable { /* future forgot pwd workflow */ }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Get Started / Log In Button
+        Button(
+            onClick = { onLoginClick(usernameOrEmail.trim(), password.trim()) },
+            enabled = usernameOrEmail.isNotBlank() && password.isNotBlank(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = SahayaPrimary,
+                disabledContainerColor = Color(0xFFFED7AA)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .testTag("landing_get_started_button")
+        ) {
+            Text(
+                text = if (isHindi) "शुरू करें (लॉग इन)" else "Get Started",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color.White
             )
         }
 
         Spacer(modifier = Modifier.height(28.dp))
 
-        // Login & Register CTA Buttons
-        Button(
-            onClick = onLoginClick,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .testTag("landing_login_button")
+        // Divider: or register as
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
             Text(
-                text = if (isHindi) "लॉग इन करें" else "Log In",
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                text = if (isHindi) "  या पंजीकरण करें  " else "  or register as  ",
+                fontSize = 12.sp,
+                color = Color(0xFF94A3B8),
+                fontWeight = FontWeight.Medium
             )
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE2E8F0))
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        OutlinedButton(
-            onClick = onRegisterClick,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .testTag("landing_register_button")
+        // Dual Register Buttons: Client | Service Provider
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Client Pill
+            OutlinedButton(
+                onClick = { onRegisterClick(UserRole.CLIENT) },
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = SahayaSecondary),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .testTag("register_as_client_button")
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = SahayaSecondary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (isHindi) "ग्राहक" else "Client",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // Service Provider Pill
+            OutlinedButton(
+                onClick = { onRegisterClick(UserRole.WORKER) },
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = SahayaSecondary),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .testTag("register_as_worker_button")
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Handyman,
+                        contentDescription = null,
+                        tint = SahayaPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (isHindi) "सहायक" else "Service Provider",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Footer: Don't have an account? Sign up
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isHindi) "नया खाता बनाएं (पंजीकरण)" else "Create an Account / Register",
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                text = if (isHindi) "खाता नहीं है? " else "Don't have an account? ",
+                fontSize = 13.sp,
+                color = Color(0xFF64748B)
             )
-        }
-    }
-}
-
-@Composable
-private fun FeatureRow(title: String, desc: String) {
-    Row(verticalAlignment = Alignment.Top, modifier = Modifier.fillMaxWidth()) {
-        Icon(
-            imageVector = Icons.Default.CheckCircle,
-            contentDescription = null,
-            tint = SahayaSuccess,
-            modifier = Modifier
-                .size(18.dp)
-                .padding(top = 2.dp)
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column {
             Text(
-                text = title,
+                text = if (isHindi) "साइन अप करें" else "Sign up",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(1.dp))
-            Text(
-                text = desc,
-                fontSize = 11.sp,
-                color = Color.Gray,
-                lineHeight = 15.sp
+                color = SahayaPrimary,
+                modifier = Modifier
+                    .clickable { onRegisterClick(UserRole.CLIENT) }
+                    .testTag("landing_signup_link")
             )
         }
     }
 }
+

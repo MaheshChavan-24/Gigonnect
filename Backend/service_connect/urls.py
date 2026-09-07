@@ -29,7 +29,5 @@ urlpatterns = [
     path('api/profiles/', include('profiles.urls')),
 ]
 
-# This part is crucial! It tells Django to serve media files from the MEDIA_ROOT folder
-# when you are running in development mode (DEBUG=True).
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files from the MEDIA_ROOT folder
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

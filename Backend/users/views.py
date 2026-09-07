@@ -73,9 +73,9 @@ class DocumentUploadView(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         id_type = request.data.get('id_type')
-        id_front_image = request.data.get('id_front_image')
-        id_back_image = request.data.get('id_back_image')
-        id_selfie_image = request.data.get('id_selfie_image')
+        id_front_image = request.FILES.get('id_front_image') or request.data.get('id_front_image')
+        id_back_image = request.FILES.get('id_back_image') or request.data.get('id_back_image')
+        id_selfie_image = request.FILES.get('id_selfie_image') or request.data.get('id_selfie_image')
 
         if not id_type or not id_front_image or not id_back_image:
             return Response({"error": "ID Type, Front Image, and Back Image are required."}, status=status.HTTP_400_BAD_REQUEST)
@@ -87,6 +87,7 @@ class DocumentUploadView(APIView):
             user.id_selfie_image = id_selfie_image
         
         user.verification_status = 'pending'
+        user.submitted_at = timezone.now()
         user.save()
 
         return Response({"message": "Documents uploaded successfully. Verification is pending.", "status": "pending"}, status=status.HTTP_200_OK)

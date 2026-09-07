@@ -70,8 +70,8 @@ fun PostJobScreen(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String>(Constants.TRADE_CATEGORIES.first().nameEn) }
-    var address by remember { mutableStateOf("Baner, Pune, MH") }
-    var budgetStr by remember { mutableStateOf("750") }
+    var address by remember { mutableStateOf("") }
+    var budgetStr by remember { mutableStateOf("") }
     var isNegotiable by remember { mutableStateOf(true) }
     var urgency by remember { mutableStateOf(initialUrgency) }
 

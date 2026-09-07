@@ -66,10 +66,10 @@ fun WalletScreen(
     isHindi: Boolean = false
 ) {
     var showPayoutDialog by remember { mutableStateOf(false) }
-    var payoutAmountStr by remember { mutableStateOf("1500") }
-    var bankName by remember { mutableStateOf(user?.bankName ?: "HDFC Bank") }
-    var accountNumber by remember { mutableStateOf(user?.accountNumber ?: "501002341992") }
-    var ifscCode by remember { mutableStateOf(user?.ifscCode ?: "HDFC0001234") }
+    var payoutAmountStr by remember { mutableStateOf(if ((user?.walletBalance ?: 0.0) > 0) (user?.walletBalance?.toInt() ?: 0).toString() else "") }
+    var bankName by remember { mutableStateOf(user?.bankName?.ifEmpty { "State Bank of India" } ?: "State Bank of India") }
+    var accountNumber by remember { mutableStateOf(user?.accountNumber ?: "") }
+    var ifscCode by remember { mutableStateOf(user?.ifscCode ?: "") }
 
     val scrollState = rememberScrollState()
 
@@ -230,9 +230,9 @@ fun WalletScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Recent Transaction History
+        // Transaction History / Escrow Releases
         Text(
-            text = if (isHindi) "हाल के लेनदेन (एस्क्रो व निकासी)" else "Recent Transactions",
+            text = if (isHindi) "लेनदेन एवं एस्क्रो भुगतान" else "Transactions & Payouts",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = BentoTextPrimary
@@ -240,33 +240,43 @@ fun WalletScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        TransactionItem(
-            title = "Escrow Released (Bathroom Fixture)",
-            subtitle = "Direct job payout approved by Client",
-            amount = "+₹850",
-            isCredit = true,
-            status = "Completed"
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TransactionItem(
-            title = "Bank Payout to HDFC Bank",
-            subtitle = "Transferred to •••• 1992",
-            amount = "-₹1,200",
-            isCredit = false,
-            status = "Processed"
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TransactionItem(
-            title = "Escrow Released (Switchboard Wiring)",
-            subtitle = "Emergency job payment",
-            amount = "+₹550",
-            isCredit = true,
-            status = "Completed"
-        )
+        if ((user?.walletBalance ?: 0.0) > 0) {
+            TransactionItem(
+                title = if (isHindi) "एस्क्रो राशि जमा" else "Escrow Balance Credited",
+                subtitle = if (isHindi) "क्लाइंट द्वारा कार्य पूर्णता पर स्वीकृत" else "Released on job completion by Client",
+                amount = "+₹${(user?.walletBalance ?: 0.0).toInt()}",
+                isCredit = true,
+                status = "Available"
+            )
+        } else {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(containerColor = BentoSurface),
+                border = BorderStroke(1.dp, BentoOutline.copy(alpha = 0.6f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = if (isHindi) "अभी कोई लेनदेन नहीं है" else "No Recent Transactions",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = BentoTextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (isHindi) "जैसे ही आप कार्य पूरा करेंगे, एस्क्रो से आपकी राशि यहाँ जुड़ेगी।" else "Escrow payouts will appear here upon client job approval.",
+                        fontSize = 12.sp,
+                        color = BentoTextSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
     }
 
     // Payout Request Dialog

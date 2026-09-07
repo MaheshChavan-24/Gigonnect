@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -88,11 +90,19 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
 
     // User & Session
     val currentUser: StateFlow<User?> = repository.currentUser
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     // Language Toggle (false = English, true = Hindi)
     private val _isHindi = MutableStateFlow(false)
     val isHindi: StateFlow<Boolean> = _isHindi.asStateFlow()
+
+    // Pre-selected registration role
+    private val _registrationRole = MutableStateFlow(UserRole.CLIENT)
+    val registrationRole: StateFlow<UserRole> = _registrationRole.asStateFlow()
+
+    fun setRegistrationRole(role: UserRole) {
+        _registrationRole.value = role
+    }
 
     // Navigation & Tabs
     private val _currentScreen = MutableStateFlow(
@@ -125,38 +135,56 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
     private val _selectedCategory = MutableStateFlow<String?>(null)
     val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
 
-    // Jobs
+    // Jobs (Instant Room StateFlow with dynamic user scoping)
     val availableJobs: StateFlow<List<Job>> = repository.availableJobs
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val clientJobs: StateFlow<List<Job>> = repository.getClientJobs(sessionManager.getUserId())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val clientJobs: StateFlow<List<Job>> = currentUser.flatMapLatest { user ->
+        if (user != null) repository.getClientJobs(user.id)
+        else flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val workerActiveJob: StateFlow<Job?> = repository.getWorkerActiveJob(sessionManager.getUserId())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val workerActiveJob: StateFlow<Job?> = currentUser.flatMapLatest { user ->
+        if (user != null) repository.getWorkerActiveJob(user.id)
+        else flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val workerHistory: StateFlow<List<Job>> = repository.getWorkerHistory(sessionManager.getUserId())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val workerHistory: StateFlow<List<Job>> = currentUser.flatMapLatest { user ->
+        if (user != null) repository.getWorkerHistory(user.id)
+        else flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     // Profiles & Requests
     val allTradeProfiles: StateFlow<List<TradeProfile>> = repository.allTradeProfiles
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val myTradeProfiles: StateFlow<List<TradeProfile>> = repository.getMyTradeProfiles(sessionManager.getUserId())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val myTradeProfiles: StateFlow<List<TradeProfile>> = currentUser.flatMapLatest { user ->
+        if (user != null) repository.getMyTradeProfiles(user.id)
+        else flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val clientRequests: StateFlow<List<ServiceRequest>> = repository.getClientRequests(sessionManager.getUserId())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val clientRequests: StateFlow<List<ServiceRequest>> = currentUser.flatMapLatest { user ->
+        if (user != null) repository.getClientRequests(user.id)
+        else flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val workerRequests: StateFlow<List<ServiceRequest>> = repository.getWorkerRequests(sessionManager.getUserId())
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val workerRequests: StateFlow<List<ServiceRequest>> = currentUser.flatMapLatest { user ->
+        if (user != null) repository.getWorkerRequests(user.id)
+        else flowOf(emptyList())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     // Notifications
     val notifications: StateFlow<List<Notification>> = repository.allNotifications
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val unreadCount: StateFlow<Int> = repository.unreadNotificationsCount
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     // Razorpay Checkout Dialog State
     private val _razorpayState = MutableStateFlow(RazorpayPaymentState())
@@ -248,14 +276,14 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun refreshAllData() {
         viewModelScope.launch {
-            repository.refreshCurrentUser()
-            repository.fetchAvailableJobs()
-            repository.fetchClientJobs()
-            repository.fetchWorkerActiveJob()
-            repository.fetchWorkerHistory()
-            repository.fetchMyTradeProfiles()
-            repository.fetchServiceRequests()
-            repository.refreshNotifications()
+            launch { repository.refreshCurrentUser() }
+            launch { repository.fetchAvailableJobs() }
+            launch { repository.fetchClientJobs() }
+            launch { repository.fetchWorkerActiveJob() }
+            launch { repository.fetchWorkerHistory() }
+            launch { repository.fetchMyTradeProfiles() }
+            launch { repository.fetchServiceRequests() }
+            launch { repository.refreshNotifications() }
         }
     }
 
@@ -332,7 +360,7 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
                 _currentScreen.value = AppDestination.WORKER_MARKETPLACE
                 repository.fetchAvailableJobs()
             }
-            showMessage(if (newRole == UserRole.CLIENT) "Switched to Customer Mode" else "Switched to Service Professional Mode")
+            showMessage(if (newRole == UserRole.CLIENT) "Switched to Client Mode" else "Switched to Service Provider Mode")
         }
     }
 
@@ -591,11 +619,23 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
 
     // --- KYC Documents ---
 
-    fun submitKyc(idType: String) {
+    fun submitKyc(
+        context: android.content.Context,
+        idType: String,
+        frontUri: android.net.Uri,
+        backUri: android.net.Uri,
+        selfieUri: android.net.Uri?
+    ) {
         viewModelScope.launch {
-            repository.updateKycDocuments(idType)
-            showMessage("KYC documents uploaded. Status updated to Pending.")
-            _currentScreen.value = AppDestination.VERIFICATION_PENDING
+            _isLoading.value = true
+            val result = repository.uploadKycDocuments(context, idType, frontUri, backUri, selfieUri)
+            _isLoading.value = false
+            result.onSuccess { msg ->
+                showMessage(msg)
+                _currentScreen.value = AppDestination.VERIFICATION_PENDING
+            }.onFailure { err ->
+                showMessage(err.message ?: "Document upload failed.")
+            }
         }
     }
 

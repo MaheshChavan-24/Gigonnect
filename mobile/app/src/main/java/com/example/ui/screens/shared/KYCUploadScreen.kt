@@ -1,5 +1,8 @@
 package com.example.ui.screens.shared
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,16 +60,28 @@ import com.example.ui.theme.SahayaSuccess
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KYCUploadScreen(
-    onSubmit: (String) -> Unit,
+    onSubmit: (idType: String, frontUri: Uri, backUri: Uri, selfieUri: Uri?) -> Unit,
     onBackClick: () -> Unit,
     isHindi: Boolean = false
 ) {
     var selectedIdType by remember { mutableStateOf("Aadhaar") }
     var isExpanded by remember { mutableStateOf(false) }
 
-    var frontUploaded by remember { mutableStateOf(true) }
-    var backUploaded by remember { mutableStateOf(true) }
-    var selfieUploaded by remember { mutableStateOf(true) }
+    var frontUri by remember { mutableStateOf<Uri?>(null) }
+    var backUri by remember { mutableStateOf<Uri?>(null) }
+    var selfieUri by remember { mutableStateOf<Uri?>(null) }
+
+    val frontPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) frontUri = uri
+    }
+
+    val backPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) backUri = uri
+    }
+
+    val selfiePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) selfieUri = uri
+    }
 
     val scrollState = rememberScrollState()
 
@@ -171,7 +186,7 @@ fun KYCUploadScreen(
 
         // Document Upload Slots
         Text(
-            text = if (isHindi) "दस्तावेज़ अपलोड करें:" else "Upload Document Photos:",
+            text = if (isHindi) "दस्तावेज़ अपलोड करें (फ़ाइल चुनें):" else "Upload Document Photos (Choose File):",
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold
         )
@@ -181,8 +196,9 @@ fun KYCUploadScreen(
         // 1. ID Front Image
         UploadCard(
             title = "$selectedIdType (Front Side)",
-            isUploaded = frontUploaded,
-            onToggle = { frontUploaded = !frontUploaded },
+            isUploaded = frontUri != null,
+            subText = if (frontUri != null) "File attached: ${frontUri?.lastPathSegment?.takeLast(20) ?: "document.jpg"}" else "Tap to choose file / take photo",
+            onClick = { frontPicker.launch("image/*") },
             icon = Icons.Default.CloudUpload,
             tag = "kyc_upload_front"
         )
@@ -192,8 +208,9 @@ fun KYCUploadScreen(
         // 2. ID Back Image
         UploadCard(
             title = "$selectedIdType (Back Side)",
-            isUploaded = backUploaded,
-            onToggle = { backUploaded = !backUploaded },
+            isUploaded = backUri != null,
+            subText = if (backUri != null) "File attached: ${backUri?.lastPathSegment?.takeLast(20) ?: "document.jpg"}" else "Tap to choose file / take photo",
+            onClick = { backPicker.launch("image/*") },
             icon = Icons.Default.CloudUpload,
             tag = "kyc_upload_back"
         )
@@ -203,8 +220,9 @@ fun KYCUploadScreen(
         // 3. Selfie Photo
         UploadCard(
             title = if (isHindi) "चेहरे की सेल्फी (Selfie)" else "Live Face Selfie with ID",
-            isUploaded = selfieUploaded,
-            onToggle = { selfieUploaded = !selfieUploaded },
+            isUploaded = selfieUri != null,
+            subText = if (selfieUri != null) "Photo attached: ${selfieUri?.lastPathSegment?.takeLast(20) ?: "selfie.jpg"}" else "Tap to select photo (Optional)",
+            onClick = { selfiePicker.launch("image/*") },
             icon = Icons.Default.CameraAlt,
             tag = "kyc_upload_selfie"
         )
@@ -212,8 +230,14 @@ fun KYCUploadScreen(
         Spacer(modifier = Modifier.height(28.dp))
 
         Button(
-            onClick = { onSubmit(selectedIdType) },
-            enabled = frontUploaded && backUploaded && selfieUploaded,
+            onClick = {
+                val f = frontUri
+                val b = backUri
+                if (f != null && b != null) {
+                    onSubmit(selectedIdType, f, b, selfieUri)
+                }
+            },
+            enabled = frontUri != null && backUri != null,
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -233,7 +257,8 @@ fun KYCUploadScreen(
 private fun UploadCard(
     title: String,
     isUploaded: Boolean,
-    onToggle: () -> Unit,
+    subText: String,
+    onClick: () -> Unit,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     tag: String
 ) {
@@ -246,7 +271,7 @@ private fun UploadCard(
                 shape = RoundedCornerShape(12.dp)
             )
             .background(if (isUploaded) Color(0xFFF0FDF4) else MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-            .clickable(onClick = onToggle)
+            .clickable(onClick = onClick)
             .padding(14.dp)
             .testTag(tag),
         verticalAlignment = Alignment.CenterVertically,
@@ -275,7 +300,7 @@ private fun UploadCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = if (isUploaded) "Document attached (Tap to change)" else "Tap to upload file / photo",
+                    text = subText,
                     fontSize = 11.sp,
                     color = if (isUploaded) SahayaSuccess else Color.Gray
                 )
@@ -283,3 +308,4 @@ private fun UploadCard(
         }
     }
 }
+
