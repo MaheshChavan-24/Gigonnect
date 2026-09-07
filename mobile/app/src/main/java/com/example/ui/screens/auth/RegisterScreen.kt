@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
@@ -41,6 +43,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.UserRole
+import com.example.ui.components.SahaayLogo
 import com.example.ui.theme.SahayaPrimary
 
 @Composable
@@ -65,14 +68,22 @@ fun RegisterScreen(
             .verticalScroll(scrollState)
             .padding(24.dp)
     ) {
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier.testTag("register_back_button")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back"
-            )
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.testTag("register_back_button")
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+
+            SahaayLogo(size = 38.dp, shapeRadius = 10.dp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -85,7 +96,7 @@ fun RegisterScreen(
         )
 
         Text(
-            text = if (isHindi) "सहाय पर सेवा लेने या देने के लिए जुड़ें" else "Join Sahaya to hire or offer professional services",
+            text = if (isHindi) "सहाय पर सेवा लेने या देने के लिए जुड़ें" else "Join Sahaay for trusted home & trade services",
             fontSize = 13.sp,
             color = Color.Gray
         )
@@ -94,7 +105,7 @@ fun RegisterScreen(
 
         // Role Segmented Toggle
         Text(
-            text = if (isHindi) "आपकी प्राथमिक भूमिका:" else "Primary Role:",
+            text = if (isHindi) "आपकी प्राथमिक भूमिका:" else "I want to register as:",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -120,7 +131,7 @@ fun RegisterScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isHindi) "ग्राहक (Client)" else "Client (Hire)",
+                    text = if (isHindi) "ग्राहक (Customer)" else "Customer",
                     fontSize = 13.sp,
                     fontWeight = if (selectedRole == UserRole.CLIENT) FontWeight.Bold else FontWeight.Medium,
                     color = if (selectedRole == UserRole.CLIENT) SahayaPrimary else Color.Gray
@@ -139,7 +150,7 @@ fun RegisterScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isHindi) "कारीगर (Worker)" else "Worker (Earn)",
+                    text = if (isHindi) "कारीगर (Professional)" else "Service Professional",
                     fontSize = 13.sp,
                     fontWeight = if (selectedRole == UserRole.WORKER) FontWeight.Bold else FontWeight.Medium,
                     color = if (selectedRole == UserRole.WORKER) SahayaPrimary else Color.Gray

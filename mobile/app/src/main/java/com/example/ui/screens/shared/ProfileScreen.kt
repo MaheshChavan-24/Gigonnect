@@ -25,27 +25,18 @@ import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,49 +63,21 @@ fun ProfileScreen(
     onWalletClick: () -> Unit,
     isHindi: Boolean,
     onToggleLanguage: () -> Unit,
-    baseUrl: String = "https://asep-1-2-bq8h.onrender.com/",
-    onUpdateBaseUrl: (String) -> Unit = {},
     onLogoutClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    var showUrlDialog by remember { mutableStateOf(false) }
-    var tempUrl by remember(baseUrl) { mutableStateOf(baseUrl) }
 
-    if (showUrlDialog) {
-        AlertDialog(
-            onDismissRequest = { showUrlDialog = false },
-            title = { Text("Django Backend URL") },
-            text = {
-                Column {
-                    Text(
-                        "Configure the API base URL. Use 10.0.2.2:8000 for Android Emulator or your PC's IP (e.g. 192.168.1.5:8000) for a physical phone.",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = tempUrl,
-                        onValueChange = { tempUrl = it },
-                        label = { Text("Base URL") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            },
-            confirmButton = {
-                Button(onClick = {
-                    onUpdateBaseUrl(tempUrl.trim())
-                    showUrlDialog = false
-                }) {
-                    Text("Save & Connect")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUrlDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
+    val kycSubtitle = when (user?.verificationStatus) {
+        com.example.data.model.VerificationStatus.VERIFIED -> if (isHindi) "सत्यापित (Verified)" else "Verified Badge Active"
+        com.example.data.model.VerificationStatus.PENDING -> if (isHindi) "समीक्षाधीन (Under Review)" else "Under Review (Tap to View)"
+        com.example.data.model.VerificationStatus.REJECTED -> if (isHindi) "अस्वीकृत (पुनः अपलोड करें)" else "Rejected - Action Required"
+        else -> if (isHindi) "जमा नहीं किया (सत्यापन करें)" else "Not Submitted (Tap to Verify)"
+    }
+
+    val bankSubtitle = if (!user?.bankName.isNullOrBlank()) {
+        "${user?.bankName} •••• ${user?.accountNumber?.takeLast(4) ?: "••••"}"
+    } else {
+        if (isHindi) "बैंक खाता जोड़ें (एस्क्रो हेतु)" else "Add Bank Details for Escrow Payouts"
     }
 
     Column(
@@ -202,9 +165,9 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (user?.activeRole == UserRole.CLIENT) {
-                                if (isHindi) "सक्रिय मोड: ग्राहक" else "Active Mode: Client"
+                                if (isHindi) "सक्रिय मोड: ग्राहक" else "Active Mode: Customer"
                             } else {
-                                if (isHindi) "सक्रिय मोड: कारीगर" else "Active Mode: Worker"
+                                if (isHindi) "सक्रिय मोड: कारीगर" else "Active Mode: Service Professional"
                             },
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
@@ -241,13 +204,13 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = if (isHindi) "कामगार मोड चालू करें" else "Switch to Worker Mode",
+                            text = if (isHindi) "कामगार / कारीगर मोड चालू करें" else "Switch to Professional Mode",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = if (isHindi) "सेवाएं प्रदान करें एवं कमाई करें" else "Offer skills and accept local jobs",
+                            text = if (isHindi) "सेवाएं प्रदान करें एवं कमाई करें" else "Accept local repair jobs and offer services",
                             fontSize = 11.sp,
                             color = Color.Gray
                         )
@@ -276,14 +239,14 @@ fun ProfileScreen(
                 ProfileMenuItem(
                     icon = Icons.Default.Shield,
                     title = if (isHindi) "सरकारी पहचान सत्यापन (KYC)" else "KYC Identity Documents",
-                    subtitle = if (user?.verificationStatus == com.example.data.model.VerificationStatus.VERIFIED) "Verified" else "Pending Review",
+                    subtitle = kycSubtitle,
                     onClick = onKycClick
                 )
 
                 ProfileMenuItem(
                     icon = Icons.Default.AccountBalance,
                     title = if (isHindi) "बैंक विवरण (पayout हेतु)" else "Bank Account & Payouts",
-                    subtitle = "${user?.bankName ?: "HDFC Bank"} •••• ${user?.accountNumber?.takeLast(4) ?: "2341"}",
+                    subtitle = bankSubtitle,
                     onClick = onWalletClick
                 )
 
@@ -295,10 +258,10 @@ fun ProfileScreen(
                 )
 
                 ProfileMenuItem(
-                    icon = Icons.Default.Settings,
-                    title = if (isHindi) "बैकएंड सर्वर URL" else "Django Backend URL",
-                    subtitle = baseUrl,
-                    onClick = { showUrlDialog = true }
+                    icon = Icons.Default.VerifiedUser,
+                    title = if (isHindi) "सुरक्षा एवं एस्क्रो गारंटी" else "Escrow Safety & Trust",
+                    subtitle = if (isHindi) "100% सुरक्षित भुगतान प्रणाली" else "100% Secure Payment Guarantee",
+                    onClick = {}
                 )
             }
         }

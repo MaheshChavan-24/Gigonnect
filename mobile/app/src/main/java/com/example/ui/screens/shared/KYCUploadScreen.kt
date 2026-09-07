@@ -113,9 +113,9 @@ fun KYCUploadScreen(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = if (isHindi) {
-                        "काम पोस्ट करने या स्वीकारने से पहले पहचान सत्यापन अनिवार्य है। सुरक्षित एस्क्रो और ग्राहकों के विश्वास हेतु।"
+                        "काम स्वीकारने से पहले पहचान सत्यापन अनिवार्य है। सुरक्षित एस्क्रो और विश्वास हेतु।"
                     } else {
-                        "Identity verification is required before accepting jobs. Admin reviews your ID to maintain platform trust & safety."
+                        "Identity verification is required before accepting jobs to maintain platform safety and trust."
                     },
                     fontSize = 12.sp,
                     color = Color(0xFF1E3A8A),

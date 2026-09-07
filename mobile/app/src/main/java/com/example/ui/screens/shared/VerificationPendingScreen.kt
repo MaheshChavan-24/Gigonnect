@@ -93,12 +93,12 @@ fun VerificationPendingScreen(
 
         Text(
             text = if (status == VerificationStatus.VERIFIED) {
-                if (isHindi) "आपके सरकारी पहचान पत्र की पुष्टि हो चुकी है। आप सभी कार्यों को पोस्ट एवं स्वीकार कर सकते हैं।" else "Your government documents have been verified by the administrator. You have full access to marketplace jobs."
+                if (isHindi) "आपके सरकारी पहचान पत्र की पुष्टि हो चुकी है। आप सभी कार्यों को पोस्ट एवं स्वीकार कर सकते हैं।" else "Your government documents have been verified. You have full access to marketplace jobs."
             } else {
                 if (isHindi) {
-                    "आपके दस्तावेज़ एडमिन समीक्षा के लिए भेज दिए गए हैं। सत्यापन प्रक्रिया आमतौर पर 1-2 घंटों में पूरी होती है।"
+                    "आपके दस्तावेज़ सत्यापन समीक्षा के लिए भेज दिए गए हैं। सत्यापन प्रक्रिया आमतौर पर 1-2 घंटों में पूरी होती है।"
                 } else {
-                    "Your documents have been submitted to the administrator for review via Django Admin portal. You will receive an in-app notification once verified."
+                    "Your documents have been submitted for verification review. You will receive an in-app notification once approved."
                 }
             },
             fontSize = 13.sp,

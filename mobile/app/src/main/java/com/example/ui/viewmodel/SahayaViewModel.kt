@@ -193,13 +193,13 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
 
     // --- Authentication & Session ---
 
-    fun login(username: String, password: String, targetRole: UserRole = UserRole.CLIENT) {
+    fun login(username: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
             val result = repository.login(username, password)
             _isLoading.value = false
             result.onSuccess { user ->
-                switchRole(targetRole)
+                switchRole(user.activeRole)
                 showMessage("Welcome back, ${user.username}!")
                 refreshAllData()
             }.onFailure { err ->
@@ -239,9 +239,11 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun logout() {
-        repository.logout()
-        _currentScreen.value = AppDestination.LANDING
-        showMessage("Logged out successfully.")
+        viewModelScope.launch {
+            repository.logout()
+            _currentScreen.value = AppDestination.LANDING
+            showMessage("Logged out successfully.")
+        }
     }
 
     fun refreshAllData() {
@@ -322,11 +324,15 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             repository.switchUserRole(newRole)
             if (newRole == UserRole.CLIENT) {
-                setClientTab(ClientTab.HOME)
+                _clientTab.value = ClientTab.HOME
+                _currentScreen.value = AppDestination.CLIENT_DASHBOARD
+                repository.fetchClientJobs()
             } else {
-                setWorkerTab(WorkerTab.FIND_JOBS)
+                _workerTab.value = WorkerTab.FIND_JOBS
+                _currentScreen.value = AppDestination.WORKER_MARKETPLACE
+                repository.fetchAvailableJobs()
             }
-            showMessage(if (newRole == UserRole.CLIENT) "Switched to Client Mode" else "Switched to Worker Mode")
+            showMessage(if (newRole == UserRole.CLIENT) "Switched to Customer Mode" else "Switched to Service Professional Mode")
         }
     }
 
@@ -373,7 +379,12 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val user = currentUser.value
             if (user?.verificationStatus != VerificationStatus.VERIFIED) {
-                _currentScreen.value = AppDestination.VERIFICATION_PENDING
+                if (user?.verificationStatus == VerificationStatus.PENDING) {
+                    _currentScreen.value = AppDestination.VERIFICATION_PENDING
+                } else {
+                    _currentScreen.value = AppDestination.KYC_UPLOAD
+                }
+                showMessage("Verification required before accepting jobs.")
                 return@launch
             }
             _isLoading.value = true
