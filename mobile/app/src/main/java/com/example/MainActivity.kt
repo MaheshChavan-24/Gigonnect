@@ -284,6 +284,9 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                         activeJob = workerActiveJob,
                         onMarkDoneClick = { job -> viewModel.workerMarkComplete(job) },
                         onFindJobsClick = { viewModel.setWorkerTab(WorkerTab.FIND_JOBS) },
+                        onSubmitWorkerReview = { clientId, clientName, rating, comment, serviceType ->
+                            viewModel.submitWorkerReview(clientId, clientName, rating, comment, serviceType)
+                        },
                         isHindi = isHindi
                     )
                 }
@@ -375,11 +378,8 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                             }
                         },
                         onWalletClick = {
-                            if (activeRole == UserRole.WORKER) {
-                                viewModel.setWorkerTab(WorkerTab.WALLET)
-                            } else {
-                                viewModel.navigateTo(AppDestination.WALLET)
-                            }
+                            // Wallet is accessible from Profile for both roles
+                            viewModel.navigateTo(AppDestination.WALLET)
                         },
                         isHindi = isHindi,
                         onToggleLanguage = { viewModel.toggleLanguage() },
@@ -562,32 +562,33 @@ fun WorkerBottomNavigation(
             selected = currentTab == WorkerTab.PROFILES,
             onClick = { onTabSelected(WorkerTab.PROFILES) },
             icon = { Icon(Icons.Default.Handyman, contentDescription = "Profiles") },
-            label = { Text(if (isHindi) "ट्रेड (3)" else "Profiles", fontSize = 10.sp, fontWeight = if (currentTab == WorkerTab.PROFILES) FontWeight.Bold else FontWeight.Normal) },
+            label = { Text(if (isHindi) "त्रेड" else "Profiles", fontSize = 10.sp, fontWeight = if (currentTab == WorkerTab.PROFILES) FontWeight.Bold else FontWeight.Normal) },
             colors = navColors,
             modifier = Modifier.testTag("nav_tab_worker_profiles")
         )
 
+        // Dedicated Notifications tab with unread badge (same as Client nav)
         NavigationBarItem(
-            selected = currentTab == WorkerTab.WALLET,
-            onClick = { onTabSelected(WorkerTab.WALLET) },
-            icon = { Icon(Icons.Default.AccountBalance, contentDescription = "Wallet") },
-            label = { Text(if (isHindi) "वॉलेट" else "Wallet", fontSize = 10.sp, fontWeight = if (currentTab == WorkerTab.WALLET) FontWeight.Bold else FontWeight.Normal) },
+            selected = currentTab == WorkerTab.NOTIFICATIONS,
+            onClick = { onTabSelected(WorkerTab.NOTIFICATIONS) },
+            icon = {
+                if (unreadAlerts > 0) {
+                    BadgedBox(badge = { Badge { Text("$unreadAlerts") } }) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                    }
+                } else {
+                    Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                }
+            },
+            label = { Text(if (isHindi) "सूचनाएं" else "Alerts", fontSize = 10.sp, fontWeight = if (currentTab == WorkerTab.NOTIFICATIONS) FontWeight.Bold else FontWeight.Normal) },
             colors = navColors,
-            modifier = Modifier.testTag("nav_tab_worker_wallet")
+            modifier = Modifier.testTag("nav_tab_worker_notifications")
         )
 
         NavigationBarItem(
             selected = currentTab == WorkerTab.PROFILE,
             onClick = { onTabSelected(WorkerTab.PROFILE) },
-            icon = {
-                if (unreadAlerts > 0) {
-                    BadgedBox(badge = { Badge { Text("$unreadAlerts") } }) {
-                        Icon(Icons.Default.Person, contentDescription = "Profile")
-                    }
-                } else {
-                    Icon(Icons.Default.Person, contentDescription = "Profile")
-                }
-            },
+            icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
             label = { Text(if (isHindi) "खाता" else "Profile", fontSize = 10.sp, fontWeight = if (currentTab == WorkerTab.PROFILE) FontWeight.Bold else FontWeight.Normal) },
             colors = navColors,
             modifier = Modifier.testTag("nav_tab_worker_profile")

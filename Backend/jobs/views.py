@@ -146,12 +146,26 @@ class CreateReviewView(generics.CreateAPIView):
             raise serializers.ValidationError({"error": "You have already reviewed this job."})
 
         # 4. Save the Review
-        serializer.save(
+        review = serializer.save(
             job=job,
             reviewer=user,
             target=target_user,
             review_type=review_type
         )
+
+        # 5. Send notification to the reviewed person so they see the star icon in their app
+        if review_type == 'client_to_worker':
+            Notification.objects.create(
+                user=target_user,
+                title='New Review Received',
+                message=f'{user.username} rated your work on "{job.title}" ({review.rating}/5). Check your profile!'
+            )
+        elif review_type == 'worker_to_client':
+            Notification.objects.create(
+                user=target_user,
+                title='New Review Received',
+                message=f'{user.username} reviewed you as a client on "{job.title}" ({review.rating}/5).'
+            )
 
 class WorkerReviewsView(generics.ListAPIView):
     """

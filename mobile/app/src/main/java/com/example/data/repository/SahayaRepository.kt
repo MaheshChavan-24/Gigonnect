@@ -77,6 +77,10 @@ class SahayaRepository(
     fun getJobById(jobId: Long): Flow<Job?> =
         jobDao.getJobById(jobId).map { it?.toDomain() }
 
+    /** One-shot read from Room — used to refresh selectedJob after a mutation. */
+    suspend fun getJobByIdOnce(jobId: Long): Job? =
+        jobDao.getJobDirect(jobId)?.toDomain()
+
     val allTradeProfiles: Flow<List<TradeProfile>> =
         tradeProfileDao.getAllActiveProfiles().map { list -> list.map { it.toDomain() } }
 
@@ -841,11 +845,26 @@ class SahayaRepository(
     private fun ServiceRequestDto.toDomain(): ServiceRequest = toEntity().toDomain()
 
     private fun NotificationDto.toEntity(): NotificationEntity {
+        // Infer a notification type from the title so the UI can show the correct icon.
+        // The backend Notification model has no `type` field, so we map here.
+        val inferredType = when {
+            title.contains("review", ignoreCase = true) ||
+            title.contains("rated", ignoreCase = true) -> "review"
+            title.contains("escrow", ignoreCase = true) ||
+            title.contains("payment", ignoreCase = true) ||
+            title.contains("funded", ignoreCase = true) -> "escrow_funded"
+            title.contains("released", ignoreCase = true) ||
+            title.contains("payout", ignoreCase = true) -> "escrow_released"
+            title.contains("complete", ignoreCase = true) ||
+            title.contains("verified", ignoreCase = true) -> "job_completed"
+            title.contains("dispute", ignoreCase = true) -> "dispute"
+            else -> "general"
+        }
         return NotificationEntity(
             id = id,
             title = title,
             message = message,
-            type = "general",
+            type = inferredType,
             isRead = isRead,
             timestamp = System.currentTimeMillis(),
             relatedJobId = null

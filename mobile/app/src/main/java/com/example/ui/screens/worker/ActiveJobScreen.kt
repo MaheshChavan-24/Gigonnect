@@ -23,14 +23,23 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,11 +47,13 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.data.model.EscrowStatus
 import com.example.data.model.Job
 import com.example.data.model.JobStatus
 import com.example.ui.components.EscrowStatusBar
 import com.example.ui.components.JobStatusBadge
+import com.example.ui.components.StarRatingBar
 import com.example.ui.components.TradeIcons
 import com.example.ui.theme.SahayaPrimary
 import com.example.ui.theme.SahayaPrimaryContainer
@@ -53,6 +64,7 @@ fun ActiveJobScreen(
     activeJob: Job?,
     onMarkDoneClick: (Job) -> Unit,
     onFindJobsClick: () -> Unit,
+    onSubmitWorkerReview: (clientId: Long, clientName: String, rating: Int, comment: String, serviceType: String) -> Unit,
     isHindi: Boolean = false
 ) {
     if (activeJob == null) {
@@ -110,6 +122,11 @@ fun ActiveJobScreen(
     }
 
     val scrollState = rememberScrollState()
+
+    // Two-way review: worker rates client after escrow is released
+    var showWorkerReviewDialog by remember { mutableStateOf(false) }
+    var workerReviewRating by remember { mutableIntStateOf(5) }
+    var workerReviewComment by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -314,6 +331,101 @@ fun ActiveJobScreen(
                         fontSize = 12.sp,
                         color = Color(0xFF78350F)
                     )
+                }
+            }
+        }
+        // COMPLETED → Worker rates the client (two-way review)
+        if (activeJob.status == JobStatus.COMPLETED) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Card(
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFEFF6FF)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = if (isHindi) "कार्य सफलतापूर्वक पूर्ण हुआ!" else "Job Successfully Completed!",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SahayaSuccess
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { showWorkerReviewDialog = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = SahayaPrimary),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("worker_rate_client_button")
+                    ) {
+                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isHindi) "ग्राहक को रेटिंग दें" else "Rate the Client",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    // Worker-to-client review dialog
+    if (showWorkerReviewDialog && activeJob != null) {
+        Dialog(onDismissRequest = { showWorkerReviewDialog = false }) {
+            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surface) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = if (isHindi) "ग्राहक की समीक्षा करें" else "Rate & Review Client",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = activeJob.clientName ?: "Client",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    StarRatingBar(
+                        rating = workerReviewRating,
+                        onRatingChanged = { workerReviewRating = it }
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    OutlinedTextField(
+                        value = workerReviewComment,
+                        onValueChange = { workerReviewComment = it },
+                        label = { Text(if (isHindi) "समीक्षा लिखें" else "Your feedback (e.g. punctual, cooperative)") },
+                        minLines = 3,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showWorkerReviewDialog = false }) {
+                            Text(if (isHindi) "छोड़ें" else "Skip")
+                        }
+                        Button(
+                            onClick = {
+                                onSubmitWorkerReview(
+                                    activeJob.clientId ?: 0L,
+                                    activeJob.clientName ?: "Client",
+                                    workerReviewRating,
+                                    workerReviewComment,
+                                    activeJob.serviceType
+                                )
+                                showWorkerReviewDialog = false
+                            }
+                        ) {
+                            Text(if (isHindi) "समीक्षा सबमिट करें" else "Submit Review")
+                        }
+                    }
                 }
             }
         }

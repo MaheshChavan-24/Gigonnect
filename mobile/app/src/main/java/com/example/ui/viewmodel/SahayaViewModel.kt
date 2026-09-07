@@ -15,6 +15,7 @@ import com.example.data.model.UserRole
 import com.example.data.model.VerificationStatus
 import com.example.data.network.SessionManager
 import com.example.data.repository.SahayaRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -67,7 +68,7 @@ enum class WorkerTab {
     FIND_JOBS,
     ACTIVE_JOB,
     PROFILES,
-    WALLET,
+    NOTIFICATIONS,
     PROFILE
 }
 
@@ -201,6 +202,14 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
     init {
         if (sessionManager.isLoggedIn()) {
             refreshAllData()
+            // 30-second polling: keeps worker & client devices in sync without WebSockets.
+            // Each action also refreshes immediately, so this only catches cross-device changes.
+            viewModelScope.launch {
+                while (true) {
+                    delay(30_000L)
+                    if (sessionManager.isLoggedIn()) refreshAllData()
+                }
+            }
         }
     }
 
@@ -321,7 +330,7 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
             WorkerTab.FIND_JOBS -> navigateTo(AppDestination.WORKER_MARKETPLACE)
             WorkerTab.ACTIVE_JOB -> navigateTo(AppDestination.ACTIVE_JOB)
             WorkerTab.PROFILES -> navigateTo(AppDestination.MY_PROFILES)
-            WorkerTab.WALLET -> navigateTo(AppDestination.WALLET)
+            WorkerTab.NOTIFICATIONS -> navigateTo(AppDestination.NOTIFICATIONS)
             WorkerTab.PROFILE -> navigateTo(AppDestination.PROFILE)
         }
     }
@@ -424,6 +433,8 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
             _isLoading.value = false
             result.onSuccess {
                 showMessage("Job accepted! Awaiting client escrow funding.")
+                // Refresh selectedJob so JobDetailScreen reflects ACCEPTED state immediately
+                _selectedJob.value = repository.getJobByIdOnce(job.id) ?: _selectedJob.value
                 setWorkerTab(WorkerTab.ACTIVE_JOB)
             }.onFailure { err ->
                 showMessage(err.message ?: "Failed to accept job.")
@@ -451,7 +462,9 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
             result.onSuccess {
                 _razorpayState.value = state.copy(isVerifying = false, isSuccess = true)
                 showMessage("Payment of ₹${state.amount.toInt()} secured in Escrow!")
-                kotlinx.coroutines.delay(800)
+                // Fix: update selectedJob so the Pay button disappears without restarting
+                _selectedJob.value = repository.getJobByIdOnce(state.jobId) ?: _selectedJob.value
+                delay(800)
                 _razorpayState.value = RazorpayPaymentState()
             }.onFailure { err ->
                 _razorpayState.value = state.copy(isVerifying = false)
@@ -471,6 +484,8 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
             _isLoading.value = false
             result.onSuccess {
                 showMessage("Marked as complete! Client requested to release funds.")
+                // Fix: refresh selectedJob and active job so ActiveJobScreen shows correct state
+                _selectedJob.value = repository.getJobByIdOnce(job.id) ?: _selectedJob.value
             }.onFailure { err ->
                 showMessage(err.message ?: "Failed to mark as complete.")
             }
@@ -484,6 +499,8 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
             _isLoading.value = false
             result.onSuccess {
                 showMessage("Escrow released! ₹${job.budget.toInt()} credited to worker.")
+                // Fix: update selectedJob so approve/release buttons vanish immediately
+                _selectedJob.value = repository.getJobByIdOnce(job.id) ?: _selectedJob.value
             }.onFailure { err ->
                 showMessage(err.message ?: "Failed to release escrow.")
             }
@@ -497,12 +514,14 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
             _isLoading.value = false
             result.onSuccess {
                 showMessage("Dispute registered. Support team will mediate.")
+                _selectedJob.value = repository.getJobByIdOnce(job.id) ?: _selectedJob.value
             }.onFailure { err ->
                 showMessage(err.message ?: "Failed to register dispute.")
             }
         }
     }
 
+    // Client reviews worker after job is COMPLETED
     fun submitReview(workerId: Long, workerName: String, rating: Int, comment: String, serviceType: String) {
         viewModelScope.launch {
             val user = currentUser.value
@@ -517,7 +536,29 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
                 serviceType = serviceType
             )
             result.onSuccess {
-                showMessage("Thank you! Review submitted.")
+                showMessage("Thank you! Your review has been submitted.")
+            }.onFailure { err ->
+                showMessage(err.message ?: "Failed to submit review.")
+            }
+        }
+    }
+
+    // Worker reviews client after job is COMPLETED (two-way review system)
+    fun submitWorkerReview(clientId: Long, clientName: String, rating: Int, comment: String, serviceType: String) {
+        viewModelScope.launch {
+            val user = currentUser.value
+            val currentJobId = workerActiveJob.value?.id ?: selectedJob.value?.id ?: 1L
+            val result = repository.addReview(
+                jobId = currentJobId,
+                workerId = clientId,    // addReview sends to /api/jobs/reviews/create/ — backend determines target from job
+                workerName = clientName,
+                clientName = user?.username ?: "Worker",
+                rating = rating,
+                comment = comment,
+                serviceType = serviceType
+            )
+            result.onSuccess {
+                showMessage("Client review submitted. Thank you!")
             }.onFailure { err ->
                 showMessage(err.message ?: "Failed to submit review.")
             }

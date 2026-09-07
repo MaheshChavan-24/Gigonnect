@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -220,6 +221,8 @@ private fun getNotificationIcon(type: String): Pair<ImageVector, Color> {
         "escrow_funded", "escrow_released" -> Pair(Icons.Default.Lock, SahayaSuccess)
         "job_completed", "kyc_verified" -> Pair(Icons.Default.CheckCircle, SahayaSuccess)
         "dispute" -> Pair(Icons.Default.Warning, SahayaEmergency)
+        // Two-way review notifications — shown as a gold star for both client & worker
+        "review", "new_review", "client_review", "worker_review" -> Pair(Icons.Default.Star, SahayaAmber)
         else -> Pair(Icons.Default.Notifications, SahayaPrimary)
     }
 }
