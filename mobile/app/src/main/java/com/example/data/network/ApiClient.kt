@@ -26,6 +26,7 @@ object ApiClient {
             }
 
             val okHttpClient = OkHttpClient.Builder()
+                .authenticator(TokenAuthenticator(sessionManager))
                 .addInterceptor(AuthInterceptor(sessionManager))
                 .addInterceptor(loggingInterceptor)
                 .connectTimeout(30, TimeUnit.SECONDS)

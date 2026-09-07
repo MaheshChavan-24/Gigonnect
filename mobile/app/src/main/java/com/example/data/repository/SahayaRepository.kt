@@ -315,7 +315,8 @@ class SahayaRepository(
                 refreshNotifications()
                 Result.success(dto.toDomain())
             } else {
-                Result.failure(Exception(response.errorBody()?.string() ?: "Failed to post job"))
+                val errorMsg = parseErrorMessage(response.errorBody()?.string(), "Failed to post job")
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -564,7 +565,8 @@ class SahayaRepository(
                 tradeProfileDao.insertProfile(dto.toEntity())
                 Result.success(dto.toDomain())
             } else {
-                Result.failure(Exception(response.errorBody()?.string() ?: "Failed to create trade profile"))
+                val errorMsg = parseErrorMessage(response.errorBody()?.string(), "Failed to create trade profile")
+                Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
             Result.failure(e)
@@ -875,4 +877,35 @@ class SahayaRepository(
     }
 
     private fun NotificationDto.toDomain(): Notification = toEntity().toDomain()
+
+    private fun parseErrorMessage(errorBody: String?, fallback: String): String {
+        if (errorBody.isNullOrBlank()) return fallback
+        if (errorBody.contains("token_not_valid", ignoreCase = true) || errorBody.contains("Token is invalid or expired", ignoreCase = true)) {
+            return "Session expired. Please log out and log in again."
+        }
+        return try {
+            val json = org.json.JSONObject(errorBody)
+            when {
+                json.has("error") -> json.getString("error")
+                json.has("detail") -> json.getString("detail")
+                json.has("message") -> json.getString("message")
+                else -> {
+                    val keys = json.keys()
+                    if (keys.hasNext()) {
+                        val key = keys.next()
+                        val value = json.opt(key)
+                        if (value is org.json.JSONArray && value.length() > 0) {
+                            "$key: ${value.getString(0)}"
+                        } else {
+                            "$key: $value"
+                        }
+                    } else {
+                        fallback
+                    }
+                }
+            }
+        } catch (_: Exception) {
+            errorBody.take(150)
+        }
+    }
 }
