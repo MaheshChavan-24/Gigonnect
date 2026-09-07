@@ -56,7 +56,7 @@ class SahayaRepository(
         get() = ApiClient.getService(sessionManager)
 
     // Flow observations from Room (cached data synced from backend)
-    val currentUser: Flow<User?> = userDao.getUserFlow(sessionManager.getUserId()).map { it?.toDomain() }
+    val currentUser: Flow<User?> = userDao.getActiveUserFlow().map { it?.toDomain() }
 
     val availableJobs: Flow<List<Job>> = jobDao.getAvailableJobs().map { list -> list.map { it.toDomain() } }
 
@@ -103,14 +103,14 @@ class SahayaRepository(
     // AUTH & PROFILE NETWORK CALLS
     // ==========================================
 
-    suspend fun login(username: String, password: String):Result<User> {
+    suspend fun login(username: String, password: String): Result<User> {
         return try {
             val response = api.login(LoginRequest(username = username, password = password))
             if (response.isSuccessful && response.body() != null) {
                 val body = response.body()!!
                 sessionManager.saveTokens(body.access, body.refresh)
 
-                // Fetch full profile from /api/users/me/
+                // Fetch real full profile from /api/users/me/
                 val meResponse = api.getCurrentUser()
                 val userDto = if (meResponse.isSuccessful && meResponse.body() != null) {
                     meResponse.body()!!
@@ -118,14 +118,15 @@ class SahayaRepository(
                     body.user ?: UserDto(id = 1L, username = username)
                 }
 
-                val role = if (userDto.isWorker) UserRole.WORKER else UserRole.CLIENT
+                val role = if (userDto.isWorker && !userDto.isClient) UserRole.WORKER else UserRole.CLIENT
                 sessionManager.saveUserSession(userDto.id, userDto.username, userDto.email, role)
 
                 val user = userDto.toDomain(role)
+                userDao.clearUsers()
                 userDao.insertUser(UserEntity.fromDomain(user))
                 Result.success(user)
             } else {
-                val errorMsg = response.errorBody()?.string() ?: "Login failed. Check your credentials."
+                val errorMsg = response.errorBody()?.string() ?: "Login failed. Check your username and password."
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
@@ -185,14 +186,15 @@ class SahayaRepository(
 
     suspend fun switchUserRole(newRole: UserRole) {
         sessionManager.setActiveRole(newRole)
-        val current = userDao.getUser(sessionManager.getUserId())
+        val current = userDao.getActiveUser()
         if (current != null) {
             userDao.updateUser(current.copy(activeRole = newRole.name))
         }
     }
 
-    fun logout() {
+    suspend fun logout() {
         sessionManager.clearSession()
+        userDao.clearUsers()
     }
 
     // ==========================================

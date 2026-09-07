@@ -117,7 +117,6 @@ fun SahayaApp(viewModel: SahayaViewModel) {
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val razorpayState by viewModel.razorpayState.collectAsState()
     val userMessage by viewModel.userMessage.collectAsState()
-    val baseUrl by viewModel.baseUrl.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -165,14 +164,6 @@ fun SahayaApp(viewModel: SahayaViewModel) {
             when (currentScreen) {
                 AppDestination.LANDING -> {
                     LandingScreen(
-                        onSelectRole = { role ->
-                            viewModel.switchRole(role)
-                            if (role == UserRole.CLIENT) {
-                                viewModel.navigateTo(AppDestination.CLIENT_DASHBOARD)
-                            } else {
-                                viewModel.navigateTo(AppDestination.WORKER_MARKETPLACE)
-                            }
-                        },
                         onLoginClick = { viewModel.navigateTo(AppDestination.LOGIN) },
                         onRegisterClick = { viewModel.navigateTo(AppDestination.REGISTER) },
                         isHindi = isHindi,
@@ -182,8 +173,8 @@ fun SahayaApp(viewModel: SahayaViewModel) {
 
                 AppDestination.LOGIN -> {
                     LoginScreen(
-                        onLoginSuccess = { username, password, role ->
-                            viewModel.login(username, password, role)
+                        onLoginSuccess = { username, password ->
+                            viewModel.login(username, password)
                         },
                         onBackClick = { viewModel.navigateTo(AppDestination.LANDING) },
                         onRegisterClick = { viewModel.navigateTo(AppDestination.REGISTER) },
@@ -366,7 +357,16 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                     ProfileScreen(
                         user = currentUser,
                         onSwitchRole = { role -> viewModel.switchRole(role) },
-                        onKycClick = { viewModel.navigateTo(AppDestination.KYC_UPLOAD) },
+                        onKycClick = {
+                            when (currentUser?.verificationStatus) {
+                                VerificationStatus.VERIFIED, VerificationStatus.PENDING -> {
+                                    viewModel.navigateTo(AppDestination.VERIFICATION_PENDING)
+                                }
+                                else -> {
+                                    viewModel.navigateTo(AppDestination.KYC_UPLOAD)
+                                }
+                            }
+                        },
                         onWalletClick = {
                             if (activeRole == UserRole.WORKER) {
                                 viewModel.setWorkerTab(WorkerTab.WALLET)
@@ -376,8 +376,6 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                         },
                         isHindi = isHindi,
                         onToggleLanguage = { viewModel.toggleLanguage() },
-                        baseUrl = baseUrl,
-                        onUpdateBaseUrl = { viewModel.setBaseUrl(it) },
                         onLogoutClick = { viewModel.logout() }
                     )
                 }

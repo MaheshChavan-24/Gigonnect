@@ -2,6 +2,7 @@ package com.example.ui.screens.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -37,18 +39,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.data.model.UserRole
-import com.example.ui.theme.SahayaAmber
+import com.example.ui.components.SahaayLogo
+import com.example.ui.theme.SahayaPrimary
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (String, String, UserRole) -> Unit,
+    onLoginSuccess: (String, String) -> Unit,
     onBackClick: () -> Unit,
     onRegisterClick: () -> Unit,
     isHindi: Boolean = false
 ) {
-    var username by remember { mutableStateOf("shubham_c") }
-    var password by remember { mutableStateOf("SecurePass123") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -56,14 +58,22 @@ fun LoginScreen(
             .background(MaterialTheme.colorScheme.background)
             .padding(24.dp)
     ) {
-        IconButton(
-            onClick = onBackClick,
-            modifier = Modifier.testTag("login_back_button")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back"
-            )
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.testTag("login_back_button")
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back"
+                )
+            }
+
+            SahaayLogo(size = 38.dp, shapeRadius = 10.dp)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -76,7 +86,7 @@ fun LoginScreen(
         )
 
         Text(
-            text = if (isHindi) "अपने सहाय खाते में लॉग इन करें" else "Log in to your Sahaya Django account",
+            text = if (isHindi) "अपने सहाय खाते में लॉग इन करें" else "Log in to your Sahaay account",
             fontSize = 13.sp,
             color = Color.Gray
         )
@@ -114,38 +124,21 @@ fun LoginScreen(
                 .testTag("login_password_input")
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
         Button(
-            onClick = { onLoginSuccess(username.trim(), password.trim(), UserRole.CLIENT) },
+            onClick = { onLoginSuccess(username.trim(), password.trim()) },
+            enabled = username.isNotBlank() && password.isNotBlank(),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(50.dp)
                 .testTag("login_submit_button")
         ) {
             Text(
-                text = if (isHindi) "लॉग इन करें (ग्राहक मोड)" else "Log In (as Client)",
+                text = if (isHindi) "लॉग इन करें" else "Log In",
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedButton(
-            onClick = { onLoginSuccess(username.trim(), password.trim(), UserRole.WORKER) },
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = SahayaAmber),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .testTag("login_worker_submit_button")
-        ) {
-            Text(
-                text = if (isHindi) "लॉग इन करें (कारीगर / कामगार मोड)" else "Log In (as Worker / Tradesperson)",
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
+                fontSize = 15.sp
             )
         }
 
