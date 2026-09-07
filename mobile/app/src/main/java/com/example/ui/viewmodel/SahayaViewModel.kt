@@ -15,7 +15,6 @@ import com.example.data.model.UserRole
 import com.example.data.model.VerificationStatus
 import com.example.data.network.SessionManager
 import com.example.data.repository.SahayaRepository
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -201,7 +200,7 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
     private val _userMessage = MutableStateFlow<String?>(null)
     val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
-    private var syncJob: Job? = null
+    private var syncJob: kotlinx.coroutines.Job? = null
 
     private fun startPeriodicSync() {
         syncJob?.cancel()
