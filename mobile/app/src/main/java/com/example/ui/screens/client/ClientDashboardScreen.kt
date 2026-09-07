@@ -16,28 +16,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ElectricBolt
 import androidx.compose.material.icons.filled.Handyman
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,20 +50,10 @@ import com.example.data.model.TradeCategory
 import com.example.data.model.User
 import com.example.ui.components.JobCard
 import com.example.ui.components.TradeIcons
-import com.example.ui.theme.BentoBackground
-import com.example.ui.theme.BentoDarkTile
-import com.example.ui.theme.BentoDarkTileMuted
-import com.example.ui.theme.BentoOnPrimaryContainer
-import com.example.ui.theme.BentoOutline
-import com.example.ui.theme.BentoPrimary
-import com.example.ui.theme.BentoPrimaryContainer
-import com.example.ui.theme.BentoPrimaryDark
-import com.example.ui.theme.BentoSurface
-import com.example.ui.theme.BentoSurfaceVariant
-import com.example.ui.theme.BentoTextPrimary
-import com.example.ui.theme.BentoTextSecondary
 import com.example.ui.theme.SahayaAmber
-import com.example.ui.theme.SahayaEmergency
+import com.example.ui.theme.SahayaPrimary
+import com.example.ui.theme.SahayaPrimaryContainer
+import com.example.ui.theme.SahayaSecondary
 import com.example.ui.theme.SahayaSuccess
 
 @Composable
@@ -85,139 +68,92 @@ fun ClientDashboardScreen(
     isHindi: Boolean = false
 ) {
     Scaffold(
-        containerColor = BentoBackground,
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onPostJobClick,
-                containerColor = BentoPrimary,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(20.dp),
-                modifier = Modifier.testTag("client_fab_post_job")
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Post Job", tint = Color.White)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (isHindi) "काम पोस्ट करें" else "Post a Job",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        color = Color.White
-                    )
-                }
-            }
-        }
+        containerColor = Color(0xFFF8FAFC)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BentoBackground)
+                .background(Color(0xFFF8FAFC))
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Top Header: User Greeting & Escrow Trust Status
             item {
                 Spacer(modifier = Modifier.height(4.dp))
-                // Bento Header: Avatar + User Info + Action Button
-                BentoHeader(
+                DashboardHeader(
                     user = user,
-                    isHindi = isHindi,
-                    onEmergencyClick = onEmergencyPostClick
+                    isHindi = isHindi
                 )
             }
 
-            // Bento Tile 1: Hero Card (col-span-2)
+            // Single Hero Action Card
             item {
-                BentoHeroVaultTile(
-                    clientJobs = clientJobs,
+                HeroActionCard(
                     onPostJobClick = onPostJobClick,
+                    onBrowseTradesClick = onBrowseTradesClick,
                     isHindi = isHindi
                 )
             }
 
-            // Bento Row 2: Two Square Tiles (col-span-1 each)
+            // 100% Escrow Guarantee Trust Banner
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    // Square Tile 1: Verified Trades
-                    BentoTradesTile(
-                        modifier = Modifier.weight(1f),
-                        onBrowseTradesClick = onBrowseTradesClick,
-                        isHindi = isHindi
-                    )
-
-                    // Square Tile 2: Quick Actions
-                    BentoQuickActionsTile(
-                        modifier = Modifier.weight(1f),
-                        onPostJobClick = onPostJobClick,
-                        onBrowseTradesClick = onBrowseTradesClick,
-                        onEmergencyClick = onEmergencyPostClick,
-                        isHindi = isHindi
-                    )
-                }
+                EscrowTrustBanner(isHindi = isHindi)
             }
 
-            // Bento Tile 3: Dark High-Contrast Emergency Tile (col-span-2)
-            item {
-                BentoDarkEmergencyTile(
-                    onEmergencyClick = onEmergencyPostClick,
-                    isHindi = isHindi
-                )
-            }
-
-            // Bento Categories Header
+            // Categories Section
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            text = if (isHindi) "कुशल सेवाएं" else "Trade Services",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = BentoTextPrimary
-                        )
-                        Text(
-                            text = if (isHindi) "15 प्रमाणित श्रेणियां" else "15 Verified Local Categories",
-                            fontSize = 11.sp,
-                            color = BentoTextSecondary
-                        )
-                    }
+                    Text(
+                        text = if (isHindi) "कुशल सेवाएं एवं कारीगर" else "Verified Trade Services",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = SahayaSecondary
+                    )
                     TextButton(onClick = onBrowseTradesClick) {
                         Text(
                             text = if (isHindi) "सभी देखें" else "View All",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BentoPrimary
+                            color = SahayaPrimary
                         )
                     }
                 }
             }
 
-            // Bento Category Carousel
+            // 4x2 Category Grid
             item {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(Constants.TRADE_CATEGORIES) { cat ->
-                        BentoCategoryTile(
-                            category = cat,
-                            onClick = { onCategoryClick(cat.id) },
-                            isHindi = isHindi
-                        )
+                val displayCategories = Constants.TRADE_CATEGORIES.take(8)
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    displayCategories.chunked(4).forEach { rowCats ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            rowCats.forEach { cat ->
+                                CategoryGridItem(
+                                    category = cat,
+                                    onClick = { onCategoryClick(cat.id) },
+                                    isHindi = isHindi,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            // Fill remaining space if less than 4
+                            for (i in 0 until (4 - rowCats.size)) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
 
             // My Active & Recent Jobs Header
             item {
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -225,60 +161,60 @@ fun ClientDashboardScreen(
                 ) {
                     Column {
                         Text(
-                            text = if (isHindi) "मेरी पोस्ट की गई नौकरियां" else "My Posted Jobs",
-                            fontSize = 18.sp,
+                            text = if (isHindi) "मेरे कार्य एवं अनुरोध" else "My Service Requests",
+                            fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = BentoTextPrimary
+                            color = SahayaSecondary
                         )
                         Text(
-                            text = "${clientJobs.size} ${if (isHindi) "सक्रिय अनुरोध" else "active requests"}",
-                            fontSize = 11.sp,
-                            color = BentoTextSecondary
+                            text = "${clientJobs.size} ${if (isHindi) "सक्रिय अनुरोध" else "active bookings"}",
+                            fontSize = 12.sp,
+                            color = Color(0xFF64748B)
                         )
                     }
                 }
             }
 
-            // Jobs list in Bento Grid style
+            // Jobs list
             if (clientJobs.isEmpty()) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        border = BorderStroke(1.dp, BentoOutline.copy(alpha = 0.6f)),
-                        colors = CardDefaults.cardColors(containerColor = BentoSurface)
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(28.dp),
+                                .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(54.dp)
-                                    .background(BentoPrimaryContainer, RoundedCornerShape(18.dp)),
+                                    .size(48.dp)
+                                    .background(Color(0xFFF1F5F9), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Handyman,
                                     contentDescription = null,
-                                    tint = BentoPrimary,
-                                    modifier = Modifier.size(28.dp)
+                                    tint = Color(0xFF64748B),
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(10.dp))
                             Text(
-                                text = if (isHindi) "कोई सक्रिय कार्य नहीं" else "No Active Jobs Yet",
-                                fontSize = 16.sp,
+                                text = if (isHindi) "कोई सक्रिय कार्य नहीं" else "No Active Requests",
+                                fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = BentoTextPrimary
+                                color = SahayaSecondary
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = if (isHindi) "प्लंबर, इलेक्ट्रीशियन या बढ़ई के लिए नया काम बनाएं" else "Post a task to connect with top-rated local tradespeople",
+                                text = if (isHindi) "नया काम पोस्ट करें और नजदीकी सत्यापित कारीगरों से जुड़ें" else "Post a task to connect with top-rated nearby pros",
                                 fontSize = 12.sp,
-                                color = BentoTextSecondary,
+                                color = Color(0xFF64748B),
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -296,17 +232,16 @@ fun ClientDashboardScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(64.dp))
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
 }
 
 @Composable
-private fun BentoHeader(
+private fun DashboardHeader(
     user: User?,
-    isHindi: Boolean,
-    onEmergencyClick: () -> Unit
+    isHindi: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -319,167 +254,143 @@ private fun BentoHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Bento Avatar with User Initials
-            val initials = (user?.username ?: "Jameson Doe").split(" ")
+            val initials = (user?.username ?: "Client").split(" ")
                 .mapNotNull { it.firstOrNull()?.toString() }
                 .take(2)
                 .joinToString("")
-                .ifEmpty { "JD" }
+                .ifEmpty { "C" }
 
             Box(
                 modifier = Modifier
-                    .size(44.dp)
-                    .background(BentoPrimary, CircleShape),
+                    .size(42.dp)
+                    .background(SahayaSecondary, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = initials,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 15.sp
                 )
             }
 
             Column {
                 Text(
-                    text = if (isHindi) "शुभ प्रभात • पुणे" else "GOOD MORNING • PUNE",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = BentoTextSecondary
+                    text = if (isHindi) "नमस्ते 👋" else "Welcome Back 👋",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF64748B)
                 )
                 Text(
-                    text = user?.username ?: "Jameson Doe",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BentoTextPrimary
+                    text = user?.username ?: "Client",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Black,
+                    color = SahayaSecondary
                 )
             }
         }
 
-        // Circular Bento Border Action Button
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .background(BentoSurfaceVariant, CircleShape)
-                .border(1.dp, BentoOutline, CircleShape)
-                .clickable(onClick = onEmergencyClick),
+                .background(Color(0xFFDCFCE7), RoundedCornerShape(12.dp))
+                .padding(horizontal = 10.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Shield,
-                contentDescription = "Escrow Safe",
-                tint = SahayaSuccess,
-                modifier = Modifier.size(20.dp)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = "Escrow Protected",
+                    tint = SahayaSuccess,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = if (isHindi) "एस्क्रो सुरक्षित" else "100% Escrow",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = SahayaSuccess
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun BentoHeroVaultTile(
-    clientJobs: List<Job>,
+private fun HeroActionCard(
     onPostJobClick: () -> Unit,
+    onBrowseTradesClick: () -> Unit,
     isHindi: Boolean
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("bento_hero_vault_tile"),
-        shape = RoundedCornerShape(28.dp),
-        border = BorderStroke(1.dp, BentoOutline.copy(alpha = 0.4f)),
-        colors = CardDefaults.cardColors(containerColor = BentoPrimaryContainer)
+            .testTag("client_hero_action_card"),
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, Color(0xFFFED7AA)),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF7ED))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(18.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (isHindi) "एस्क्रो वॉल्ट और बुकिंग्स" else "Total Escrow Protected",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = BentoOnPrimaryContainer
-                )
-
-                // Bento Live Badge
-                Box(
-                    modifier = Modifier
-                        .background(BentoOnPrimaryContainer, RoundedCornerShape(100.dp))
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        text = if (isHindi) "लाइव सुरक्षित" else "LIVE SECURE",
-                        color = Color.White,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.8.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            val totalBudget = clientJobs.sumOf { it.budget.toInt() }
-            val displayAmount = if (totalBudget > 0) "₹$totalBudget" else "₹2,850.00"
-
             Text(
-                text = displayAmount,
-                fontSize = 32.sp,
+                text = if (isHindi) "आज किसी कुशल कारीगर की आवश्यकता है?" else "Need a Skilled Trade Pro Today?",
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Black,
-                letterSpacing = (-0.5).sp,
-                color = BentoOnPrimaryContainer
+                color = Color(0xFF7C2D12),
+                lineHeight = 22.sp
             )
 
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = if (isHindi) "100% माइलस्टोन एस्क्रो सुरक्षा • काम पूरा होने पर भुगतान" else "+100% Milestone protected vs direct contractor cash",
+                text = if (isHindi) "तुरंत काम पोस्ट करें या 15+ प्रमाणित कारीगरों की सूची देखें।" else "Post your repair requirements or browse KYC-verified professionals.",
                 fontSize = 12.sp,
-                color = BentoTextSecondary,
-                modifier = Modifier.padding(top = 4.dp)
+                color = Color(0xFF9A3412),
+                lineHeight = 16.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Button(
                     onClick = onPostJobClick,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = BentoPrimary,
-                        contentColor = Color.White
-                    )
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = SahayaPrimary),
+                    modifier = Modifier
+                        .weight(1.2f)
+                        .height(46.dp)
+                        .testTag("hero_post_job_button")
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (isHindi) "नया काम पोस्ट करें" else "Post New Job",
-                        fontSize = 12.sp,
+                        text = if (isHindi) "काम पोस्ट करें" else "Post a Job",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Security,
-                        contentDescription = null,
-                        tint = BentoOnPrimaryContainer,
-                        modifier = Modifier.size(16.dp)
-                    )
+                OutlinedButton(
+                    onClick = onBrowseTradesClick,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = SahayaSecondary),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(46.dp)
+                        .testTag("hero_browse_trades_button")
+                ) {
+                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "100% Refundable",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = BentoOnPrimaryContainer
+                        text = if (isHindi) "कारीगर खोजें" else "Browse",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -488,293 +399,84 @@ private fun BentoHeroVaultTile(
 }
 
 @Composable
-private fun BentoTradesTile(
-    modifier: Modifier = Modifier,
-    onBrowseTradesClick: () -> Unit,
-    isHindi: Boolean
-) {
-    Card(
-        modifier = modifier
-            .height(170.dp)
-            .clickable(onClick = onBrowseTradesClick)
-            .testTag("bento_trades_tile"),
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, BentoOutline),
-        colors = CardDefaults.cardColors(containerColor = BentoSurface)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(42.dp)
-                    .background(BentoPrimaryDark, RoundedCornerShape(14.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Handyman,
-                    contentDescription = "Trades",
-                    tint = BentoOnPrimaryContainer,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            Column {
-                Text(
-                    text = if (isHindi) "प्रमाणित कारीगर" else "Verified Trades",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BentoTextSecondary,
-                    letterSpacing = 0.5.sp
-                )
-                Text(
-                    text = if (isHindi) "15 श्रेणियां" else "15 Skills",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Black,
-                    color = BentoTextPrimary
-                )
-                Text(
-                    text = if (isHindi) "प्लंबर, इलेक्ट्रीशियन..." else "Electrician, Plumber...",
-                    fontSize = 10.sp,
-                    color = BentoTextSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BentoQuickActionsTile(
-    modifier: Modifier = Modifier,
-    onPostJobClick: () -> Unit,
-    onBrowseTradesClick: () -> Unit,
-    onEmergencyClick: () -> Unit,
-    isHindi: Boolean
-) {
-    Card(
-        modifier = modifier
-            .height(170.dp)
-            .testTag("bento_quick_actions_tile"),
-        shape = RoundedCornerShape(24.dp),
-        border = BorderStroke(1.dp, BentoOutline),
-        colors = CardDefaults.cardColors(containerColor = BentoSurfaceVariant)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = if (isHindi) "त्वरित क्रियाएं" else "QUICK ACTIONS",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = 0.8.sp,
-                color = BentoTextSecondary
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Action 1
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onPostJobClick)
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp), tint = BentoPrimary)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (isHindi) "काम पोस्ट" else "Post Task",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = BentoTextPrimary
-                    )
-                }
-
-                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(BentoOutline.copy(alpha = 0.4f)))
-
-                // Action 2
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onBrowseTradesClick)
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null, modifier = Modifier.size(16.dp), tint = BentoPrimary)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (isHindi) "कारीगर बुक" else "Book Pro",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = BentoTextPrimary
-                    )
-                }
-
-                Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(BentoOutline.copy(alpha = 0.4f)))
-
-                // Action 3
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onEmergencyClick)
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(16.dp), tint = SahayaEmergency)
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (isHindi) "आपातकाल SOS" else "Urgent SOS",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = SahayaEmergency
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BentoDarkEmergencyTile(
-    onEmergencyClick: () -> Unit,
-    isHindi: Boolean
-) {
-    Card(
+private fun EscrowTrustBanner(isHindi: Boolean) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onEmergencyClick)
-            .testTag("client_emergency_banner"),
-        shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = BentoDarkTile),
-        border = BorderStroke(1.dp, Color(0xFF333333))
+            .background(Color(0xFFF0FDF4), RoundedCornerShape(14.dp))
+            .border(1.dp, Color(0xFFDCFCE7), RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .background(SahayaEmergency, CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (isHindi) "तत्काल प्रेषण ≤ 5KM" else "RAPID DISPATCH ≤ 5KM",
-                        color = Color(0xFFFFDAD6),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = if (isHindi) "आपातकालीन मरम्मत SOS" else "Urgent Repair SOS",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = if (isHindi) "बिजली शॉर्ट सर्किट, पाइप लीकेज पर 15 मिनट में कारीगर" else "Fast response for power outages, pipe bursts & gas leaks.",
-                    color = BentoDarkTileMuted,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Button(
-                onClick = onEmergencyClick,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = SahayaEmergency,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.testTag("emergency_button_action")
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.ElectricBolt, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = if (isHindi) "SOS" else "SOS",
-                        fontWeight = FontWeight.Black,
-                        fontSize = 13.sp
-                    )
-                }
-            }
-        }
+        Icon(
+            imageVector = Icons.Default.Shield,
+            contentDescription = null,
+            tint = SahayaSuccess,
+            modifier = Modifier.size(18.dp)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = if (isHindi) {
+                "100% सुरक्षित एस्क्रो: काम पूरा होने और आपकी संतुष्टि पर ही भुगतान।"
+            } else {
+                "100% Escrow Protection: Funds released only after your approval."
+            },
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color(0xFF166534),
+            lineHeight = 15.sp
+        )
     }
 }
 
 @Composable
-private fun BentoCategoryTile(
+private fun CategoryGridItem(
     category: TradeCategory,
     onClick: () -> Unit,
-    isHindi: Boolean
+    isHindi: Boolean,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
-            .width(120.dp)
-            .height(130.dp)
+        modifier = modifier
             .clickable(onClick = onClick)
-            .testTag("category_chip_${category.id}"),
-        shape = RoundedCornerShape(22.dp),
-        border = BorderStroke(1.dp, BentoOutline.copy(alpha = 0.6f)),
-        colors = CardDefaults.cardColors(containerColor = BentoSurface)
+            .testTag("category_grid_${category.id}"),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
-                    .background(BentoPrimaryContainer, RoundedCornerShape(14.dp)),
+                    .size(38.dp)
+                    .background(Color(0xFFFFF7ED), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = TradeIcons.getIconForCategory(category.title),
                     contentDescription = category.title,
-                    tint = BentoPrimary,
-                    modifier = Modifier.size(22.dp)
+                    tint = SahayaPrimary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = if (isHindi) category.hindiTitle else category.title,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = BentoTextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = "₹${category.baseHourlyRate.toInt()}/hr",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = SahayaAmber
-                )
-            }
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = if (isHindi) category.hindiTitle else category.title,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = SahayaSecondary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
+

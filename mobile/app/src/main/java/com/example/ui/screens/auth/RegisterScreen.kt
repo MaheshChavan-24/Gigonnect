@@ -48,6 +48,7 @@ import com.example.ui.theme.SahayaPrimary
 
 @Composable
 fun RegisterScreen(
+    initialRole: UserRole = UserRole.CLIENT,
     onRegisterSuccess: (username: String, email: String, password: String, firstName: String, phone: String, isClient: Boolean, isWorker: Boolean) -> Unit,
     onBackClick: () -> Unit,
     onLoginClick: () -> Unit,
@@ -57,7 +58,10 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf(UserRole.CLIENT) }
+    var selectedRole by remember { mutableStateOf(initialRole) }
+    androidx.compose.runtime.LaunchedEffect(initialRole) {
+        selectedRole = initialRole
+    }
 
     val scrollState = rememberScrollState()
 
@@ -131,7 +135,7 @@ fun RegisterScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isHindi) "ग्राहक (Customer)" else "Customer",
+                    text = if (isHindi) "ग्राहक (Client)" else "Client",
                     fontSize = 13.sp,
                     fontWeight = if (selectedRole == UserRole.CLIENT) FontWeight.Bold else FontWeight.Medium,
                     color = if (selectedRole == UserRole.CLIENT) SahayaPrimary else Color.Gray
@@ -150,7 +154,7 @@ fun RegisterScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isHindi) "कारीगर (Professional)" else "Service Professional",
+                    text = if (isHindi) "सहायक (Service Provider)" else "Service Provider",
                     fontSize = 13.sp,
                     fontWeight = if (selectedRole == UserRole.WORKER) FontWeight.Bold else FontWeight.Medium,
                     color = if (selectedRole == UserRole.WORKER) SahayaPrimary else Color.Gray

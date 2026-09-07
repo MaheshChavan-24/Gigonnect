@@ -18,13 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.ElectricBolt
+import androidx.compose.material.icons.filled.Handyman
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,16 +35,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.Job
 import com.example.data.model.UrgencyLevel
 import com.example.data.model.User
-import com.example.ui.components.InteractiveJobMap
 import com.example.ui.components.JobCard
-import com.example.ui.theme.SahayaAmber
 import com.example.ui.theme.SahayaEmergency
 import com.example.ui.theme.SahayaPrimary
+import com.example.ui.theme.SahayaSecondary
 
 @Composable
 fun WorkerMarketplaceScreen(
@@ -59,9 +54,7 @@ fun WorkerMarketplaceScreen(
     onAcceptJobClick: (Job) -> Unit,
     isHindi: Boolean = false
 ) {
-    var isMapView by remember { mutableStateOf(true) }
     var emergencyOnlyFilter by remember { mutableStateOf(false) }
-    var selectedMapJob by remember { mutableStateOf<Job?>(null) }
 
     val filteredJobs = remember(jobs, emergencyOnlyFilter) {
         if (emergencyOnlyFilter) {
@@ -74,8 +67,8 @@ fun WorkerMarketplaceScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 18.dp, vertical = 12.dp)
+            .background(Color(0xFFF8FAFC))
+            .padding(horizontal = 20.dp, vertical = 14.dp)
     ) {
         // Top Header
         Row(
@@ -85,167 +78,135 @@ fun WorkerMarketplaceScreen(
         ) {
             Column {
                 Text(
-                    text = if (isHindi) "उपलब्ध काम (मार्केटप्लेस)" else "Job Marketplace",
+                    text = if (isHindi) "उपलब्ध कार्य (मार्केटप्लेस)" else "Available Jobs",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = SahayaSecondary
                 )
                 Text(
-                    text = if (isHindi) "पुणे दायरा: ≤5km तत्काल | ≤30km मानक" else "Pune area: ≤5km SOS | ≤30km Standard",
+                    text = if (isHindi) "ग्राहकों द्वारा पोस्ट किए गए ऑन-डिमांड कार्य" else "Direct client service postings with escrow guarantee",
                     fontSize = 12.sp,
-                    color = Color.Gray
+                    color = Color(0xFF64748B)
                 )
-            }
-
-            // Map vs List Toggle
-            Row(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                    .padding(3.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .background(
-                            if (isMapView) MaterialTheme.colorScheme.surface else Color.Transparent,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .clickable { isMapView = true }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                        .testTag("worker_toggle_map_view")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Map,
-                        contentDescription = "Map View",
-                        tint = if (isMapView) SahayaPrimary else Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .background(
-                            if (!isMapView) MaterialTheme.colorScheme.surface else Color.Transparent,
-                            RoundedCornerShape(8.dp)
-                        )
-                        .clickable { isMapView = false }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                        .testTag("worker_toggle_list_view")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.List,
-                        contentDescription = "List View",
-                        tint = if (!isMapView) SahayaPrimary else Color.Gray,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // Filter Bar (Emergency vs All)
+        // Urgency Filter Bar
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
                     .background(
-                        if (!emergencyOnlyFilter) SahayaPrimary else MaterialTheme.colorScheme.surfaceVariant,
+                        if (!emergencyOnlyFilter) SahayaPrimary else Color.White,
                         RoundedCornerShape(20.dp)
                     )
                     .clickable { emergencyOnlyFilter = false }
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .testTag("worker_filter_all")
             ) {
                 Text(
-                    text = if (isHindi) "सभी काम (${jobs.size})" else "All Jobs (${jobs.size})",
-                    fontSize = 12.sp,
+                    text = if (isHindi) "सभी कार्य (${jobs.size})" else "All Tasks (${jobs.size})",
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (!emergencyOnlyFilter) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (!emergencyOnlyFilter) Color.White else SahayaSecondary
                 )
             }
 
             Box(
                 modifier = Modifier
                     .background(
-                        if (emergencyOnlyFilter) SahayaEmergency else MaterialTheme.colorScheme.surfaceVariant,
+                        if (emergencyOnlyFilter) SahayaEmergency else Color.White,
                         RoundedCornerShape(20.dp)
                     )
                     .clickable { emergencyOnlyFilter = true }
-                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
                     .testTag("worker_filter_emergency")
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .background(if (emergencyOnlyFilter) Color.White else SahayaEmergency, CircleShape)
+                    Icon(
+                        imageVector = Icons.Default.ElectricBolt,
+                        contentDescription = null,
+                        tint = if (emergencyOnlyFilter) Color.White else SahayaEmergency,
+                        modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = if (isHindi) "तत्काल (≤ 5km)" else "Emergency (≤ 5km)",
-                        fontSize = 12.sp,
+                        text = if (isHindi) "तत्काल SOS" else "Emergency SOS",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (emergencyOnlyFilter) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (emergencyOnlyFilter) Color.White else SahayaSecondary
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
-        // View Content
-        if (isMapView) {
-            // Interactive Map Canvas
-            InteractiveJobMap(
-                jobs = filteredJobs,
-                selectedJob = selectedMapJob,
-                onJobSelected = { job -> selectedMapJob = job },
-                isHindi = isHindi
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Selected Job Preview Card below Map
-            if (selectedMapJob != null) {
-                Text(
-                    text = if (isHindi) "चयनित कार्य:" else "Selected Job (Map Pin):",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                JobCard(
-                    job = selectedMapJob!!,
-                    onClick = { onJobClick(selectedMapJob!!) },
-                    isHindi = isHindi
-                )
-            } else {
-                Text(
-                    text = "${filteredJobs.size} jobs displayed on GPS radar. Tap a pin to inspect.",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        } else {
-            // List View
-            if (filteredJobs.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(if (isHindi) "कोई काम उपलब्ध नहीं है" else "No jobs available currently")
-                }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
+        // Clean Jobs List
+        if (filteredJobs.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    items(filteredJobs, key = { it.id }) { job ->
-                        JobCard(
-                            job = job,
-                            onClick = { onJobClick(job) },
-                            isHindi = isHindi
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(28.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .background(Color(0xFFF1F5F9), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Handyman,
+                                contentDescription = null,
+                                tint = Color(0xFF64748B),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = if (isHindi) "वर्तमान में कोई काम उपलब्ध नहीं है" else "No Available Jobs Right Now",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SahayaSecondary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (isHindi) "जैसे ही ग्राहक नया काम पोस्ट करेंगे, वह यहाँ दिखाई देगा।" else "New client requests will appear here instantly.",
+                            fontSize = 12.sp,
+                            color = Color(0xFF64748B),
+                            textAlign = TextAlign.Center
                         )
                     }
+                }
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(filteredJobs, key = { it.id }) { job ->
+                    JobCard(
+                        job = job,
+                        onClick = { onJobClick(job) },
+                        isHindi = isHindi,
+                        showDistance = false
+                    )
                 }
             }
         }

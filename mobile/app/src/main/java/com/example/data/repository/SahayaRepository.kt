@@ -1,5 +1,7 @@
 package com.example.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.example.data.local.AppDatabase
 import com.example.data.local.JobEntity
 import com.example.data.local.NotificationEntity
@@ -40,6 +42,9 @@ import com.example.data.network.dto.UserDto
 import com.example.data.network.dto.VerifyPaymentRequest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class SahayaRepository(
     private val database: AppDatabase,
@@ -184,6 +189,63 @@ class SahayaRepository(
         }
     }
 
+    suspend fun uploadKycDocuments(
+        context: Context,
+        idType: String,
+        frontUri: Uri,
+        backUri: Uri,
+        selfieUri: Uri?
+    ): Result<String> {
+        return try {
+            val idTypeBody = idType.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val frontPart = uriToMultipartBodyPart(context, frontUri, "id_front_image")
+                ?: return Result.failure(Exception("Failed to read ID Front Image"))
+
+            val backPart = uriToMultipartBodyPart(context, backUri, "id_back_image")
+                ?: return Result.failure(Exception("Failed to read ID Back Image"))
+
+            val selfiePart = selfieUri?.let { uriToMultipartBodyPart(context, it, "id_selfie_image") }
+
+            val response = api.uploadDocuments(
+                idType = idTypeBody,
+                idFrontImage = frontPart,
+                idBackImage = backPart,
+                idSelfieImage = selfiePart
+            )
+
+            if (response.isSuccessful) {
+                // Update local Room database user verification status to PENDING
+                val activeUser = userDao.getActiveUser()
+                if (activeUser != null) {
+                    userDao.insertUser(activeUser.copy(verificationStatus = "PENDING"))
+                }
+                // Also refresh current user from backend
+                refreshCurrentUser()
+                Result.success(response.body()?.message ?: "Documents uploaded successfully. Verification is pending.")
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Document upload failed (${response.code()})"
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private fun uriToMultipartBodyPart(context: Context, uri: Uri, partName: String): MultipartBody.Part? {
+        return try {
+            val contentResolver = context.contentResolver
+            val mimeType = contentResolver.getType(uri) ?: "image/jpeg"
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+            val bytes = inputStream.use { it.readBytes() }
+            val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+            val fileName = "${partName}_${System.currentTimeMillis()}.jpg"
+            MultipartBody.Part.createFormData(partName, fileName, requestBody)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun switchUserRole(newRole: UserRole) {
         sessionManager.setActiveRole(newRole)
         val current = userDao.getActiveUser()
@@ -194,7 +256,7 @@ class SahayaRepository(
 
     suspend fun logout() {
         sessionManager.clearSession()
-        userDao.clearUsers()
+        database.clearAllTables()
     }
 
     // ==========================================
@@ -367,7 +429,7 @@ class SahayaRepository(
             val payResponse = api.payJob(jobId)
             if (payResponse.isSuccessful && payResponse.body() != null) {
                 val payData = payResponse.body()!!
-                val orderId = payData.razorpayOrderId ?: "order_${System.currentTimeMillis()}"
+                val orderId = payData.razorpayOrderId ?: payData.orderId ?: "order_${System.currentTimeMillis()}"
 
                 // Verify payment with simulated signature
                 val verifyResponse = api.verifyPayment(

@@ -164,8 +164,13 @@ fun SahayaApp(viewModel: SahayaViewModel) {
             when (currentScreen) {
                 AppDestination.LANDING -> {
                     LandingScreen(
-                        onLoginClick = { viewModel.navigateTo(AppDestination.LOGIN) },
-                        onRegisterClick = { viewModel.navigateTo(AppDestination.REGISTER) },
+                        onLoginClick = { username, password ->
+                            viewModel.login(username, password)
+                        },
+                        onRegisterClick = { role ->
+                            viewModel.setRegistrationRole(role)
+                            viewModel.navigateTo(AppDestination.REGISTER)
+                        },
                         isHindi = isHindi,
                         onToggleLanguage = { viewModel.toggleLanguage() }
                     )
@@ -183,12 +188,14 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                 }
 
                 AppDestination.REGISTER -> {
+                    val regRole by viewModel.registrationRole.collectAsState()
                     RegisterScreen(
+                        initialRole = regRole,
                         onRegisterSuccess = { username, email, password, firstName, phone, isClient, isWorker ->
                             viewModel.register(username, email, password, firstName, phone, isClient, isWorker)
                         },
                         onBackClick = { viewModel.navigateTo(AppDestination.LANDING) },
-                        onLoginClick = { viewModel.navigateTo(AppDestination.LOGIN) },
+                        onLoginClick = { viewModel.navigateTo(AppDestination.LANDING) },
                         isHindi = isHindi
                     )
                 }
@@ -381,8 +388,11 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                 }
 
                 AppDestination.KYC_UPLOAD -> {
+                    val context = androidx.compose.ui.platform.LocalContext.current
                     KYCUploadScreen(
-                        onSubmit = { idType -> viewModel.submitKyc(idType) },
+                        onSubmit = { idType, frontUri, backUri, selfieUri ->
+                            viewModel.submitKyc(context, idType, frontUri, backUri, selfieUri)
+                        },
                         onBackClick = {
                             if (activeRole == UserRole.CLIENT) {
                                 viewModel.setClientTab(ClientTab.PROFILE)

@@ -13,8 +13,6 @@ class JobCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
-        if self.request.user.verification_status != 'verified':
-            raise serializers.ValidationError({"error": "You must be verified to post a job."})
         serializer.save(client=self.request.user)
 
 class JobListView(generics.ListAPIView):
@@ -39,42 +37,35 @@ class JobListView(generics.ListAPIView):
         return R * c
 
     def list(self, request, *args, **kwargs):
-        queryset = Job.objects.filter(status='pending')
+        # Exclude jobs posted by the same user who is viewing
+        queryset = Job.objects.filter(status='pending').exclude(client=request.user).order_by('-created_at')
         lat_str = request.query_params.get('lat')
         lon_str = request.query_params.get('lon')
 
         if not lat_str or not lon_str:
-            # If no location provided, we can either return all jobs or empty.
-            # But per user request, worker must provide location.
-            return Response({"error": "Location coordinates (lat, lon) are required to view available jobs."}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         try:
             worker_lat = float(lat_str)
             worker_lon = float(lon_str)
         except ValueError:
-            return Response({"error": "Invalid coordinate format."}, status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         nearby_jobs = []
         for job in queryset:
-            if job.latitude is None or job.longitude is None:
-                continue
-
-            distance = self.haversine_distance(worker_lat, worker_lon, job.latitude, job.longitude)
-            
-            # Filter by urgency
-            if job.urgency_level == 'Emergency' and distance > 5.0:
-                continue
-            elif job.urgency_level == 'Standard' and distance > 30.0:
-                continue
-
             serializer = self.get_serializer(job)
             job_data = serializer.data
-            job_data['distance_km'] = round(distance, 2)
+            if job.latitude is not None and job.longitude is not None:
+                distance = self.haversine_distance(worker_lat, worker_lon, job.latitude, job.longitude)
+                job_data['distance_km'] = round(distance, 2)
+            else:
+                job_data['distance_km'] = 1.5
             nearby_jobs.append(job_data)
 
-        # Sort by closest distance
-        nearby_jobs.sort(key=lambda x: x['distance_km'])
-
+        # Sort by distance if calculated, else created_at
+        nearby_jobs.sort(key=lambda x: x.get('distance_km', 999))
         return Response(nearby_jobs, status=status.HTTP_200_OK)
 
 class AcceptJobView(APIView):
@@ -82,14 +73,11 @@ class AcceptJobView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        if request.user.verification_status != 'verified':
-            return Response({"error": "You must be verified to accept jobs."}, status=status.HTTP_403_FORBIDDEN)
-
         try:
             # Look for a job that is still pending
             job = Job.objects.get(pk=pk, status='pending')
             
-            # Prevent clients from accepting their own jobs (optional safety check)
+            # Prevent clients from accepting their own jobs
             if job.client == request.user:
                 return Response({"error": "You cannot accept your own job."}, status=status.HTTP_400_BAD_REQUEST)
 

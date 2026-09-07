@@ -1,5 +1,6 @@
 package com.example.ui.screens.shared
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -138,7 +139,7 @@ fun ProfileScreen(
                         )
                     }
 
-                    VerificationBadge(status = user?.verificationStatus ?: com.example.data.model.VerificationStatus.UNSUBMITTED)
+                    VerificationBadge(status = user?.verificationStatus ?: com.example.data.model.VerificationStatus.UNSUBMITTED, isHindi = isHindi)
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -165,64 +166,79 @@ fun ProfileScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (user?.activeRole == UserRole.CLIENT) {
-                                if (isHindi) "सक्रिय मोड: ग्राहक" else "Active Mode: Customer"
+                                if (isHindi) "सक्रिय मोड: ग्राहक" else "Active Mode: Client"
                             } else {
-                                if (isHindi) "सक्रिय मोड: कारीगर" else "Active Mode: Service Professional"
+                                if (isHindi) "सक्रिय मोड: सहायक" else "Active Mode: Service Provider"
                             },
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp,
                             color = if (user?.activeRole == UserRole.CLIENT) SahayaPrimary else SahayaAmber
                         )
                     }
+
+                    Text(
+                        text = if (isHindi) "सत्यापित" else "Verified",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF64748B)
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        // Role Switching Card (Only shown if user is a registered Worker/Service Provider)
+        if (user != null && user.isWorker) {
+            Spacer(modifier = Modifier.height(14.dp))
 
-        // Role Switch Card
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.SwapHoriz,
-                        contentDescription = null,
-                        tint = SahayaPrimary,
-                        modifier = Modifier.size(22.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = if (isHindi) "कामगार / कारीगर मोड चालू करें" else "Switch to Professional Mode",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = null,
+                            tint = SahayaPrimary,
+                            modifier = Modifier.size(22.dp)
                         )
-                        Text(
-                            text = if (isHindi) "सेवाएं प्रदान करें एवं कमाई करें" else "Accept local repair jobs and offer services",
-                            fontSize = 11.sp,
-                            color = Color.Gray
-                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = if (user.activeRole == UserRole.WORKER) {
+                                    if (isHindi) "ग्राहक मोड पर स्विच करें" else "Switch to Client Mode"
+                                } else {
+                                    if (isHindi) "सहायक मोड पर स्विच करें" else "Switch to Service Provider Mode"
+                                },
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = if (isHindi) "अन्य सेवाओं हेतु ग्राहक मोड या काम हेतु सहायक मोड" else "Switch modes to hire other services or provide services",
+                                fontSize = 11.sp,
+                                color = Color.Gray
+                            )
+                        }
                     }
-                }
 
-                Switch(
-                    checked = user?.activeRole == UserRole.WORKER,
-                    onCheckedChange = { isWorker ->
-                        onSwitchRole(if (isWorker) UserRole.WORKER else UserRole.CLIENT)
-                    }
-                )
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Switch(
+                        checked = user.activeRole == UserRole.CLIENT,
+                        onCheckedChange = { isClient ->
+                            onSwitchRole(if (isClient) UserRole.CLIENT else UserRole.WORKER)
+                        }
+                    )
+                }
             }
         }
 
