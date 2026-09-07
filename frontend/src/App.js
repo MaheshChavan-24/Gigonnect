@@ -3,6 +3,7 @@ import axios from 'axios';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
 import { useJsApiLoader, GoogleMap, Marker, Autocomplete } from '@react-google-maps/api';
+import AdminPortal from './components/AdminPortal';
 
 
 const libraries = ['places'];
@@ -417,6 +418,27 @@ function WorkerProfile({ lang, user, setUser, fetchCurrentUser }) {
 
 // --- MAIN COMPONENT ---
 export default function App() {
+  // Direct URL Navigation for Admin Portal (Zero visibility / cues in standard client/worker UI)
+  const checkIsAdminRoute = () => {
+    const path = (window.location.pathname || '').toLowerCase();
+    const hash = (window.location.hash || '').toLowerCase();
+    return path.startsWith('/admin-portal') || hash.startsWith('#/admin-portal');
+  };
+
+  const [isAdminPortalRoute, setIsAdminPortalRoute] = useState(checkIsAdminRoute);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setIsAdminPortalRoute(checkIsAdminRoute());
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, []);
+
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "",
@@ -1113,6 +1135,10 @@ export default function App() {
 
 
   // --- RENDER ---
+  if (isAdminPortalRoute) {
+    return <AdminPortal />;
+  }
+
   if (view === 'dashboard') {
     return (
       <div className="min-h-screen bg-gray-50 font-sans">
