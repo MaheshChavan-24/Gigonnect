@@ -151,7 +151,7 @@ class RazorpayVerifyView(APIView):
 class WorkerPayoutView(APIView):
     """
     POST: Worker updates bank details and withdraws wallet balance.
-    URL: /api/users/payout/
+    URL: /api/jobs/payout/ (or /api/users/payout/)
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -161,49 +161,64 @@ class WorkerPayoutView(APIView):
             return Response({"error": "Only workers can access payouts."}, status=status.HTTP_403_FORBIDDEN)
 
         action = request.data.get('action')
+        bank_name = request.data.get('bank_name')
+        bank_account_number = request.data.get('bank_account_number')
+        bank_ifsc = request.data.get('bank_ifsc')
+
+        # Auto-update bank details if provided
+        if bank_name:
+            user.bank_name = bank_name
+        if bank_account_number:
+            user.bank_account_number = bank_account_number
+        if bank_ifsc:
+            user.bank_ifsc = bank_ifsc
+        if bank_name or bank_account_number or bank_ifsc:
+            user.save()
 
         if action == 'link':
-            bank_name = request.data.get('bank_name')
-            bank_account_number = request.data.get('bank_account_number')
-            bank_ifsc = request.data.get('bank_ifsc')
-
-            if not bank_name or not bank_account_number or not bank_ifsc:
+            if not user.bank_name or not user.bank_account_number or not user.bank_ifsc:
                 return Response({"error": "All bank details (name, account number, IFSC) are required."}, status=status.HTTP_400_BAD_REQUEST)
-
-            user.bank_name = bank_name
-            user.bank_account_number = bank_account_number
-            user.bank_ifsc = bank_ifsc
-            user.save()
 
             return Response({
                 "message": "Bank details linked successfully!",
                 "user": UserSerializer(user).data
             }, status=status.HTTP_200_OK)
 
-        elif action == 'withdraw':
-            if not user.bank_account_number:
-                return Response({"error": "Please link your bank account before withdrawing funds."}, status=status.HTTP_400_BAD_REQUEST)
+        # Default action is withdraw / payout
+        if not user.bank_account_number:
+            return Response({"error": "Please enter your bank account details before requesting payout."}, status=status.HTTP_400_BAD_REQUEST)
 
-            amount = user.wallet_balance
-            if amount <= 0:
-                return Response({"error": "No wallet balance available for withdrawal."}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Process Razorpay Route (transfers) or Payout API if real Razorpay is active
-            # E.g. client.transfer.create(...)
-
-            user.wallet_balance = 0
-            user.save()
-
-            create_notification(user, "Payout Disbursed", f"Your payout of ₹{amount} has been successfully transferred to bank account ****{user.bank_account_number[-4:]}.")
-
-            return Response({
-                "message": f"Successfully withdrew ₹{amount}! Transfer initiated.",
-                "withdrawn_amount": float(amount),
-                "user": UserSerializer(user).data
-            }, status=status.HTTP_200_OK)
-
+        # Determine payout amount
+        req_amount = request.data.get('amount')
+        from decimal import Decimal
+        if req_amount is not None:
+            try:
+                withdraw_amount = Decimal(str(req_amount))
+            except Exception:
+                withdraw_amount = user.wallet_balance
         else:
-            return Response({"error": "Invalid payout action specified."}, status=status.HTTP_400_BAD_REQUEST)
+            withdraw_amount = user.wallet_balance
+
+        if withdraw_amount <= 0:
+            return Response({"error": "No wallet balance available for withdrawal."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if withdraw_amount > user.wallet_balance:
+            return Response({"error": f"Insufficient wallet balance. Available: ₹{user.wallet_balance}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.wallet_balance -= withdraw_amount
+        user.save()
+
+        create_notification(
+            user,
+            "Payout Disbursed",
+            f"Your payout of ₹{withdraw_amount} has been successfully transferred to bank account ****{user.bank_account_number[-4:]}."
+        )
+
+        return Response({
+            "message": f"Successfully withdrew ₹{withdraw_amount}! Transfer initiated.",
+            "withdrawn_amount": float(withdraw_amount),
+            "user": UserSerializer(user).data
+        }, status=status.HTTP_200_OK)
 
 
 class RefundJobView(APIView):

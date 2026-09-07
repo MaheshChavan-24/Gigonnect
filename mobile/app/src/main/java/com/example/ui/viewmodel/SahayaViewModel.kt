@@ -15,6 +15,7 @@ import com.example.data.model.UserRole
 import com.example.data.model.VerificationStatus
 import com.example.data.network.SessionManager
 import com.example.data.repository.SahayaRepository
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 enum class AppDestination {
@@ -199,17 +201,24 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
     private val _userMessage = MutableStateFlow<String?>(null)
     val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
+    private var syncJob: Job? = null
+
+    private fun startPeriodicSync() {
+        syncJob?.cancel()
+        syncJob = viewModelScope.launch {
+            while (isActive) {
+                delay(6_000L)
+                if (sessionManager.isLoggedIn()) {
+                    refreshAllData()
+                }
+            }
+        }
+    }
+
     init {
         if (sessionManager.isLoggedIn()) {
             refreshAllData()
-            // 30-second polling: keeps worker & client devices in sync without WebSockets.
-            // Each action also refreshes immediately, so this only catches cross-device changes.
-            viewModelScope.launch {
-                while (true) {
-                    delay(30_000L)
-                    if (sessionManager.isLoggedIn()) refreshAllData()
-                }
-            }
+            startPeriodicSync()
         }
     }
 
@@ -239,6 +248,7 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
                 switchRole(user.activeRole)
                 showMessage("Welcome back, ${user.username}!")
                 refreshAllData()
+                startPeriodicSync()
             }.onFailure { err ->
                 showMessage(err.message ?: "Login failed. Please check your credentials.")
             }
@@ -277,6 +287,7 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun logout() {
         viewModelScope.launch {
+            syncJob?.cancel()
             repository.logout()
             _currentScreen.value = AppDestination.LANDING
             showMessage("Logged out successfully.")
@@ -308,6 +319,7 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
                 AppDestination.NOTIFICATIONS -> repository.refreshNotifications()
                 AppDestination.MY_PROFILES -> repository.fetchMyTradeProfiles()
                 AppDestination.MY_REQUESTS -> repository.fetchServiceRequests()
+                AppDestination.WALLET, AppDestination.PROFILE -> repository.refreshCurrentUser()
                 else -> {}
             }
         }
@@ -682,13 +694,19 @@ class SahayaViewModel(application: Application) : AndroidViewModel(application) 
 
     // --- Wallet Payout ---
 
+    fun refreshCurrentUser() {
+        viewModelScope.launch {
+            repository.refreshCurrentUser()
+        }
+    }
+
     fun requestPayout(amount: Double, bankName: String, account: String, ifsc: String) {
         viewModelScope.launch {
             _isLoading.value = true
             val success = repository.requestPayout(amount, bankName, account, ifsc)
             _isLoading.value = false
             if (success) {
-                showMessage("Payout request of ₹${amount.toInt()} initiated!")
+                showMessage("Payout of ₹${amount.toInt()} successfully transferred to bank account!")
             } else {
                 showMessage("Payout request failed. Check balance or credentials.")
             }

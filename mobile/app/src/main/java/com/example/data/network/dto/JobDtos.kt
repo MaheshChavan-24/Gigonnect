@@ -81,6 +81,8 @@ data class VerifyPaymentRequest(
 
 @JsonClass(generateAdapter = true)
 data class PayoutRequest(
+    @Json(name = "action") val action: String = "withdraw",
+    @Json(name = "amount") val amount: Double? = null,
     @Json(name = "bank_name") val bankName: String,
     @Json(name = "bank_account_number") val bankAccountNumber: String,
     @Json(name = "bank_ifsc") val bankIfsc: String

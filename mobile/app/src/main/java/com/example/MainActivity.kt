@@ -326,6 +326,7 @@ fun SahayaApp(viewModel: SahayaViewModel) {
                         onRequestPayout = { amount, bank, acc, ifsc ->
                             viewModel.requestPayout(amount, bank, acc, ifsc)
                         },
+                        onRefresh = { viewModel.refreshCurrentUser() },
                         isHindi = isHindi
                     )
                 }

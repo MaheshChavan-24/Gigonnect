@@ -697,6 +697,8 @@ class SahayaRepository(
         return try {
             val response = api.requestPayout(
                 PayoutRequest(
+                    action = "withdraw",
+                    amount = amount,
                     bankName = bankName,
                     bankAccountNumber = account,
                     bankIfsc = ifsc
@@ -704,6 +706,7 @@ class SahayaRepository(
             )
             if (response.isSuccessful) {
                 refreshCurrentUser()
+                refreshNotifications()
                 true
             } else {
                 false
